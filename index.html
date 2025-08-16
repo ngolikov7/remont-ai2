@@ -3,144 +3,383 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ДизайнИИ — редизайн комнаты</title>
-  <!-- Tailwind CDN для стилей -->
+  <title>ДизайнИИ — умный ремонт</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .step-dot{width:32px;height:32px}
+    .hidden-el{display:none}
+  </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
+  <!-- Header -->
   <header class="w-full border-b bg-white/70 sticky top-0 backdrop-blur z-30">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
-      <div class="text-xl font-bold">🏠 ДизайнИИ</div>
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
+      <div class="text-2xl">🏠</div>
+      <div class="text-xl font-bold">ДизайнИИ</div>
       <div class="text-sm text-gray-500">Умный ремонт с искусственным интеллектом</div>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold mb-6">Генерация</h1>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- ЛЕВАЯ КОЛОНКА -->
-      <section class="bg-white rounded-xl shadow p-4">
-        <h2 class="text-lg font-semibold mb-3">Исходное фото</h2>
-
-        <div class="mb-3">
-          <input id="file" type="file" accept="image/*"
-                 class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0
-                        file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700
-                        hover:file:bg-violet-100"/>
-        </div>
-
-        <div id="preview-wrap"
-             class="bg-gray-100 rounded-lg h-[420px] flex items-center justify-center overflow-hidden">
-          <span class="text-gray-500 text-sm">Предпросмотр появится после выбора изображения</span>
-        </div>
-
-        <div class="mt-4">
-          <label class="text-sm font-medium">Пожелания</label>
-          <textarea id="prompt" rows="4"
-                    placeholder="Например: светлый сканди с деревянной мебелью, больше дневного света…"
-                    class="mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"></textarea>
-        </div>
-
-        <div class="mt-4 flex gap-3">
-          <button id="start"
-                  class="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-white
-                         hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed">
-            🚀 Сгенерировать
-          </button>
-          <div id="status" class="text-sm text-gray-500"></div>
-        </div>
-
-        <div id="error" class="mt-3 text-sm text-red-600 hidden"></div>
-      </section>
-
-      <!-- ПРАВАЯ КОЛОНКА -->
-      <section class="bg-white rounded-xl shadow p-4">
-        <h2 class="text-lg font-semibold mb-3">Новый дизайн</h2>
-        <div id="result-wrap"
-             class="bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg h-[520px]
-                    flex items-center justify-center overflow-hidden">
-          <span id="placeholder" class="text-gray-700">🎨 Результат появится здесь</span>
-          <img id="result" class="max-h-full max-w-full object-contain hidden" alt="Сгенерированный дизайн"/>
-        </div>
-      </section>
+  <!-- Steps bar -->
+  <div class="max-w-7xl mx-auto px-4 py-4">
+    <div class="flex items-center justify-between bg-white rounded-xl shadow px-4 py-3">
+      <div class="flex items-center gap-2">
+        <div id="s1" class="step-dot rounded-full flex items-center justify-center font-semibold bg-violet-600 text-white">1</div>
+        <span class="text-sm font-medium">Загрузка фото</span>
+      </div>
+      <div class="text-gray-300">—</div>
+      <div class="flex items-center gap-2">
+        <div id="s2" class="step-dot rounded-full flex items-center justify-center font-semibold bg-gray-200">2</div>
+        <span class="text-sm font-medium">Параметры</span>
+      </div>
+      <div class="text-gray-300">—</div>
+      <div class="flex items-center gap-2">
+        <div id="s3" class="step-dot rounded-full flex items-center justify-center font-semibold bg-gray-200">3</div>
+        <span class="text-sm font-medium">Пожелания</span>
+      </div>
+      <div class="text-gray-300">—</div>
+      <div class="flex items-center gap-2">
+        <div id="s4" class="step-dot rounded-full flex items-center justify-center font-semibold bg-gray-200">4</div>
+        <span class="text-sm font-medium">Генерация</span>
+      </div>
+      <div class="text-gray-300">—</div>
+      <div class="flex items-center gap-2">
+        <div id="s5" class="step-dot rounded-full flex items-center justify-center font-semibold bg-gray-200">5</div>
+        <span class="text-sm font-medium">Правки</span>
+      </div>
+      <div class="text-gray-300">—</div>
+      <div class="flex items-center gap-2">
+        <div id="s6" class="step-dot rounded-full flex items-center justify-center font-semibold bg-gray-200">6</div>
+        <span class="text-sm font-medium">План ремонта</span>
+      </div>
     </div>
+  </div>
+
+  <main class="max-w-7xl mx-auto px-4 pb-16">
+    <!-- STEP 1: Загрузка -->
+    <section id="step-1" class="bg-white rounded-xl shadow p-6">
+      <h2 class="text-xl font-bold mb-4">Загрузите фотографию вашей комнаты</h2>
+      <div id="drop-area"
+           class="border-2 border-dashed border-gray-300 rounded-2xl p-10 text-center hover:border-violet-400 transition">
+        <div class="text-6xl mb-2">📷</div>
+        <p class="text-lg font-medium">Перетащите фото сюда или нажмите для выбора</p>
+        <p class="text-sm text-gray-500">Поддерживаются JPG/PNG/WEBP (до 10 МБ)</p>
+        <input id="file-input" type="file" accept="image/*" class="hidden" />
+        <button id="pick-file"
+                class="mt-4 inline-flex items-center rounded-lg bg-violet-600 px-4 py-2 text-white hover:bg-violet-700">
+          Выбрать файл
+        </button>
+      </div>
+
+      <div id="upload-preview"
+           class="hidden mt-6 bg-gray-100 rounded-xl h-[360px] flex items-center justify-center overflow-hidden">
+        <img id="preview-img" class="max-h-full max-w-full object-contain" alt="Предпросмотр"/>
+      </div>
+
+      <div class="mt-6 flex justify-between">
+        <div></div>
+        <button id="to-2"
+                class="inline-flex items-center rounded-lg bg-violet-600 px-4 py-2 text-white hover:bg-violet-700 disabled:opacity-50"
+                disabled>
+          Далее
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 2: Параметры -->
+    <section id="step-2" class="bg-white rounded-xl shadow p-6 hidden-el">
+      <h2 class="text-xl font-bold mb-4">Параметры дизайна</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="text-sm font-medium">Стиль</label>
+          <select id="style" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm">
+            <option value="">Любой / по умолчанию</option>
+            <option>Скандинавский</option>
+            <option>Минимализм</option>
+            <option>Лофт</option>
+            <option>Классика</option>
+            <option>Современный</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm font-medium">Палитра</label>
+          <select id="palette" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm">
+            <option value="">Нейтральная</option>
+            <option>Светлая</option>
+            <option>Тёплая</option>
+            <option>Холодная</option>
+            <option>Контрастная</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-between">
+        <button id="back-1" class="rounded-lg border px-4 py-2">Назад</button>
+        <button id="to-3" class="inline-flex items-center rounded-lg bg-violet-600 px-4 py-2 text-white hover:bg-violet-700">
+          Далее
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 3: Пожелания -->
+    <section id="step-3" class="bg-white rounded-xl shadow p-6 hidden-el">
+      <h2 class="text-xl font-bold mb-4">Пожелания</h2>
+
+      <label class="text-sm font-medium">Что важно учесть?</label>
+      <textarea id="wishes" rows="5"
+                class="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+                placeholder="Например: светлый сканди с деревянной мебелью, добавить больше дневного света…"></textarea>
+
+      <div class="mt-6 flex justify-between">
+        <button id="back-2" class="rounded-lg border px-4 py-2">Назад</button>
+        <button id="to-4" class="inline-flex items-center rounded-lg bg-violet-600 px-4 py-2 text-white hover:bg-violet-700">
+          Далее
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 4: Генерация -->
+    <section id="step-4" class="bg-white rounded-xl shadow p-6 hidden-el">
+      <h2 class="text-xl font-bold mb-4">Генерация</h2>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          <div class="text-lg font-semibold mb-3">Исходное фото</div>
+          <div class="bg-gray-100 rounded-lg h-[400px] flex items-center justify-center overflow-hidden">
+            <img id="final-origin" class="max-h-full max-w-full object-contain" alt="Исходное"/>
+          </div>
+        </div>
+
+        <div>
+          <div class="text-lg font-semibold mb-3">Новый дизайн</div>
+          <div class="bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg h-[400px] flex items-center justify-center overflow-hidden">
+            <img id="result-image" class="max-h-full max-w-full object-contain hidden" alt="Сгенерированный дизайн"/>
+            <span id="result-placeholder" class="text-gray-700">🎨 Результат появится здесь</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="gen-error" class="mt-4 text-sm text-red-600 hidden"></div>
+      <div id="gen-status" class="mt-2 text-sm text-gray-500"></div>
+
+      <div class="mt-6 flex justify-between">
+        <button id="back-3" class="rounded-lg border px-4 py-2">Назад</button>
+        <button id="start-generation"
+                class="inline-flex items-center rounded-lg bg-violet-600 px-4 py-2 text-white hover:bg-violet-700 disabled:opacity-50">
+          🚀 Сгенерировать
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 5: Правки -->
+    <section id="step-5" class="bg-white rounded-xl shadow p-6 hidden-el">
+      <h2 class="text-xl font-bold mb-4">Правки</h2>
+
+      <div class="mb-4 text-sm text-gray-500">
+        Напишите, что изменить, и нажмите «Перегенерировать».
+      </div>
+
+      <textarea id="rev-text" rows="4"
+                class="w-full rounded-lg border px-3 py-2 text-sm"
+                placeholder="Например: сделайте стены светлее, добавьте больше дерева..."></textarea>
+
+      <div id="rev-status" class="mt-3 text-sm text-gray-500"></div>
+      <div id="rev-error" class="mt-2 text-sm text-red-600 hidden"></div>
+
+      <div class="mt-6 flex flex-wrap gap-3 justify-between">
+        <div class="flex gap-3">
+          <button id="regenerate-design"
+                  class="rounded-lg border px-4 py-2 hover:bg-gray-50">
+            Перегенерировать с учётом правок
+          </button>
+          <button id="approve-design"
+                  class="rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700">
+            Утвердить и перейти к плану
+          </button>
+        </div>
+        <button id="back-4" class="rounded-lg border px-4 py-2">Назад</button>
+      </div>
+    </section>
+
+    <!-- STEP 6: План -->
+    <section id="step-6" class="bg-white rounded-xl shadow p-6 hidden-el">
+      <h2 class="text-xl font-bold mb-4">План ремонта</h2>
+      <div class="text-gray-700">
+        Здесь будет чек-лист материалов, ссылки на товары и ориентировочный бюджет (заглушка).
+      </div>
+      <div class="mt-6">
+        <button id="back-5" class="rounded-lg border px-4 py-2">Назад</button>
+      </div>
+    </section>
   </main>
 
   <script>
-    const fileInput   = document.getElementById('file');
-    const previewWrap = document.getElementById('preview-wrap');
-    const promptEl    = document.getElementById('prompt');
-    const startBtn    = document.getElementById('start');
-    const resultImg   = document.getElementById('result');
-    const placeholder = document.getElementById('placeholder');
-    const statusEl    = document.getElementById('status');
-    const errorEl     = document.getElementById('error');
+    // ======= МАСТЕР ШАГОВ =======
+    const sections = [
+      document.getElementById('step-1'),
+      document.getElementById('step-2'),
+      document.getElementById('step-3'),
+      document.getElementById('step-4'),
+      document.getElementById('step-5'),
+      document.getElementById('step-6')
+    ];
+    const dots = [ 's1','s2','s3','s4','s5','s6' ].map(id => document.getElementById(id));
+    let currentStep = 1;
+    function setStep(n){
+      currentStep = n;
+      sections.forEach((el, i)=>{
+        if(i===n-1){ el.classList.remove('hidden-el'); }
+        else { el.classList.add('hidden-el'); }
+      });
+      dots.forEach((d,i)=>{
+        d.classList.toggle('bg-violet-600', i < n);
+        d.classList.toggle('text-white', i < n);
+        d.classList.toggle('bg-gray-200', i >= n);
+      });
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+    setStep(1);
+
+    // ======= ШАГ 1: загрузка и предпросмотр =======
+    const dropArea = document.getElementById('drop-area');
+    const pickFileBtn = document.getElementById('pick-file');
+    const fileInput = document.getElementById('file-input');
+    const previewWrap = document.getElementById('upload-preview');
+    const previewImg  = document.getElementById('preview-img');
+    const to2Btn = document.getElementById('to-2');
 
     let uploadedFile = null;
 
-    // предпросмотр
-    fileInput.addEventListener('change', () => {
-      const f = fileInput.files?.[0];
-      uploadedFile = f || null;
-      previewWrap.innerHTML = '';
-      if (!f) {
-        const span = document.createElement('span');
-        span.className = 'text-gray-500 text-sm';
-        span.textContent = 'Предпросмотр появится после выбора изображения';
-        previewWrap.appendChild(span);
-        return;
-      }
-      const img = document.createElement('img');
-      img.src = URL.createObjectURL(f);
-      img.className = 'max-h-full max-w-full object-contain';
-      previewWrap.appendChild(img);
+    ;['dragenter','dragover','dragleave','drop'].forEach(eventName=>{
+      dropArea.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); });
+    });
+    dropArea.addEventListener('dragover', ()=>{
+      dropArea.classList.add('ring-2','ring-violet-300');
+    });
+    dropArea.addEventListener('dragleave', ()=>{
+      dropArea.classList.remove('ring-2','ring-violet-300');
+    });
+    dropArea.addEventListener('drop', e=>{
+      dropArea.classList.remove('ring-2','ring-violet-300');
+      const f = e.dataTransfer.files?.[0];
+      if (f) setFile(f);
     });
 
-    startBtn.addEventListener('click', async () => {
-      errorEl.classList.add('hidden');
-      errorEl.textContent = '';
-      resultImg.classList.add('hidden');
-      placeholder.classList.remove('hidden');
-      statusEl.textContent = 'Отправляем на сервер…';
+    pickFileBtn.addEventListener('click', ()=> fileInput.click());
+    fileInput.addEventListener('change', ()=>{
+      const f = fileInput.files?.[0];
+      if (f) setFile(f);
+    });
 
-      if (!uploadedFile) {
-        errorEl.textContent = 'Пожалуйста, выберите изображение.';
-        errorEl.classList.remove('hidden');
-        statusEl.textContent = '';
+    function setFile(f){
+      uploadedFile = f;
+      previewImg.src = URL.createObjectURL(f);
+      previewWrap.classList.remove('hidden');
+      document.getElementById('final-origin').src = previewImg.src; // для шага 4
+      to2Btn.disabled = false;
+    }
+
+    // ======= Переходы между шагами 1–3 =======
+    document.getElementById('to-2').onclick = ()=> setStep(2);
+    document.getElementById('back-1').onclick = ()=> setStep(1);
+    document.getElementById('to-3').onclick = ()=> setStep(3);
+    document.getElementById('back-2').onclick = ()=> setStep(2);
+    document.getElementById('to-4').onclick = ()=> setStep(4);
+
+    // ======= ШАГ 4: генерация =======
+    const startBtn = document.getElementById('start-generation');
+    const genStatus = document.getElementById('gen-status');
+    const genError  = document.getElementById('gen-error');
+    const resultImg = document.getElementById('result-image');
+    const resultPh  = document.getElementById('result-placeholder');
+
+    function buildPrompt(){
+      const parts = [];
+      const style = document.getElementById('style').value;
+      const palette = document.getElementById('palette').value;
+      const wishes = (document.getElementById('wishes').value || '').trim();
+
+      if(style) parts.push(`Стиль: ${style}.`);
+      if(palette) parts.push(`Палитра: ${palette}.`);
+      if(wishes) parts.push(`Пожелания: ${wishes}.`);
+      return parts.join(' ');
+    }
+
+    startBtn.addEventListener('click', async ()=>{
+      if(!uploadedFile){
+        setStep(1);
         return;
       }
+      genError.classList.add('hidden');
+      genError.textContent = '';
+      genStatus.textContent = 'Отправляем запрос…';
+      startBtn.disabled = true;
+      resultImg.classList.add('hidden');
+      resultPh.classList.remove('hidden');
 
-      try {
-        startBtn.disabled = true;
-
+      try{
         const fd = new FormData();
-        fd.append('image', uploadedFile, uploadedFile.name);
-        fd.append('prompt', (promptEl.value || '').trim());
+        fd.append('image', uploadedFile, uploadedFile.name); // важно: имя поля "image"
+        fd.append('prompt', buildPrompt());
 
-        const res = await fetch('/api/redesign', { method: 'POST', body: fd });
-        let data;
-        try { data = await res.json(); } catch (e) { data = { ok:false, error:'Неверный ответ сервера' }; }
+        const res = await fetch('/api/redesign', { method:'POST', body: fd });
+        const data = await res.json().catch(()=>({ok:false,error:'bad json'}));
 
-        if (!res.ok || !data?.ok) {
-          throw new Error(data?.details || data?.error || `API ошибка ${res.status}`);
+        if(!res.ok || !data?.ok){
+          throw new Error(data?.details || data?.error || `API ${res.status}`);
         }
 
-        // показываем
         resultImg.src = data.url;
-        resultImg.onload = () => {
-          placeholder.classList.add('hidden');
+        resultImg.onload = ()=>{
+          resultPh.classList.add('hidden');
           resultImg.classList.remove('hidden');
         };
-        statusEl.textContent = 'Готово!';
-      } catch (err) {
-        errorEl.textContent = String(err.message || err);
-        errorEl.classList.remove('hidden');
-        statusEl.textContent = '';
-      } finally {
+        genStatus.textContent = 'Готово!';
+      }catch(err){
+        genError.textContent = String(err.message || err);
+        genError.classList.remove('hidden');
+        genStatus.textContent = '';
+      }finally{
         startBtn.disabled = false;
       }
     });
+
+    // ======= ШАГ 5: простые правки (заглушка перегенерации) =======
+    document.getElementById('back-3').onclick = ()=> setStep(3);
+    document.getElementById('back-4').onclick = ()=> setStep(4);
+
+    document.getElementById('regenerate-design').onclick = async ()=>{
+      // делаем повторный вызов с добавлением ревизий к промпту
+      const rev = (document.getElementById('rev-text').value || '').trim();
+      const add = rev ? ` Доп. правки: ${rev}` : '';
+      document.getElementById('rev-status').textContent = 'Перегенерация…';
+
+      try{
+        const fd = new FormData();
+        fd.append('image', uploadedFile, uploadedFile.name);
+        fd.append('prompt', buildPrompt() + add);
+
+        const res = await fetch('/api/redesign', { method:'POST', body: fd });
+        const data = await res.json().catch(()=>({ok:false}));
+        if(!res.ok || !data?.ok) throw new Error(data?.details || data?.error || `API ${res.status}`);
+
+        resultImg.src = data.url;
+        resultImg.onload = ()=>{
+          resultPh.classList.add('hidden');
+          resultImg.classList.remove('hidden');
+        };
+        document.getElementById('rev-status').textContent = 'Готово!';
+        document.getElementById('rev-error').classList.add('hidden');
+      } catch(e){
+        document.getElementById('rev-error').textContent = String(e.message || e);
+        document.getElementById('rev-error').classList.remove('hidden');
+        document.getElementById('rev-status').textContent = '';
+      }
+    };
+
+    document.getElementById('approve-design').onclick = ()=> setStep(6);
+    document.getElementById('back-5').onclick = ()=> setStep(5);
   </script>
 </body>
 </html>
