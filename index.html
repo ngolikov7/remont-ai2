@@ -1,101 +1,133 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RemontAI — Генератор дизайна</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ДизайнИИ — редизайн комнаты</title>
+  <style>
+    body { font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; margin: 24px; line-height: 1.5; }
+    h1 { margin-top: 0; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .card { padding: 16px; border: 1px solid #eee; border-radius: 12px; background: #fff; }
+    label { display: block; font-weight: 600; margin-bottom: 8px; }
+    input[type="file"], textarea, input[type="text"] { width: 100%; box-sizing: border-box; }
+    textarea { min-height: 100px; resize: vertical;}
+    .actions { display:flex; gap:12px; align-items: center; }
+    button { padding: 10px 16px; border-radius: 8px; border: 0; background: #7c3aed; color:#fff; font-weight:600; cursor:pointer; }
+    button[disabled]{ opacity:.6; cursor:not-allowed;}
+    .muted { color:#666; font-size:14px;}
+    .imgwrap { display:flex; justify-content:center; align-items:center; background: #f7f7fb; border-radius:12px; height: 420px; overflow:hidden; }
+    .imgwrap img { max-width:100%; max-height:100%; object-fit:contain; display:block; }
+    .mono { font-family: ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; color:#555;}
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-900">
+<body>
+  <h1>ДизайнИИ — редизайн комнаты</h1>
+  <p class="muted">Загрузите фото комнаты, опишите пожелания — и получите визуализацию с новым стилем.</p>
 
-  <!-- Шапка -->
-  <header class="bg-white shadow">
-    <div class="max-w-6xl mx-auto py-4 px-6 flex justify-between items-center">
-      <h1 class="text-xl font-bold text-blue-600">RemontAI</h1>
-      <nav class="space-x-4">
-        <a href="#" class="text-gray-600 hover:text-blue-600">Главная</a>
-        <a href="#" class="text-gray-600 hover:text-blue-600">О сервисе</a>
-        <a href="#" class="text-gray-600 hover:text-blue-600">Контакты</a>
-      </nav>
+  <div class="row">
+    <div class="card">
+      <label>Фото комнаты</label>
+      <input id="photo" type="file" accept="image/*" />
+      <div id="orig" class="imgwrap" style="margin-top:12px;">
+        <span class="muted">Предпросмотр появится после выбора изображения</span>
+      </div>
+
+      <div style="margin-top:16px">
+        <label>Пожелания</label>
+        <textarea id="prompt" placeholder="Например: светлый сканди с деревянной мебелью, добавить больше дневного света..."></textarea>
+      </div>
+
+      <div class="actions" style="margin-top:16px;">
+        <button id="go">Сгенерировать дизайн</button>
+        <span id="status" class="muted"></span>
+      </div>
+
+      <details style="margin-top:16px;">
+        <summary class="muted">Отладочная информация</summary>
+        <div class="mono" id="debug"></div>
+      </details>
     </div>
-  </header>
 
-  <!-- Контент -->
-  <main class="max-w-6xl mx-auto px-6 py-10">
-    <h2 class="text-3xl font-bold text-center mb-8">Создайте новый дизайн комнаты ✨</h2>
-
-    <div class="max-w-xl mx-auto p-6 bg-white rounded-xl shadow">
-      <h3 class="text-2xl font-bold mb-4">Загрузите фото комнаты</h3>
-
-      <!-- Форма -->
-      <form id="redesign-form" class="space-y-4">
-        <input type="file" id="image-input" name="image" accept="image/*" 
-               class="w-full border p-2 rounded" required />
-
-        <textarea id="prompt-input" name="prompt" 
-                  placeholder="Опишите пожелания к дизайну (например: «светлый скандинавский стиль»)" 
-                  class="w-full border p-2 rounded"></textarea>
-
-        <button type="submit" 
-                class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700">
-          Сгенерировать дизайн
-        </button>
-      </form>
-
-      <!-- Результат -->
-      <div id="result-block" class="mt-6 text-center">
-        <span id="result-placeholder" class="text-gray-600">Здесь появится результат ✨</span>
-        <img id="result-image" class="mt-4 mx-auto max-h-96 rounded hidden" alt="Сгенерированный дизайн"/>
+    <div class="card">
+      <label>Результат</label>
+      <div class="imgwrap">
+        <img id="result" alt="Результат появится здесь" />
       </div>
     </div>
-  </main>
+  </div>
 
-  <!-- Подвал -->
-  <footer class="bg-white border-t mt-10">
-    <div class="max-w-6xl mx-auto py-4 px-6 text-center text-gray-500 text-sm">
-      © 2025 RemontAI. Все права защищены.
-    </div>
-  </footer>
-
-  <!-- Скрипт -->
   <script>
-    document.getElementById('redesign-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
+    const photoInput = document.getElementById('photo');
+    const preview = document.getElementById('orig');
+    const statusEl = document.getElementById('status');
+    const debugEl = document.getElementById('debug');
+    const resultImg = document.getElementById('result');
+    const goBtn = document.getElementById('go');
 
-      const fileInput = document.getElementById('image-input');
-      const promptInput = document.getElementById('prompt-input');
-      const resultImg = document.getElementById('result-image');
-      const placeholder = document.getElementById('result-placeholder');
+    let selectedFile = null;
 
-      if (!fileInput.files.length) {
-        alert("Пожалуйста, выберите изображение.");
+    photoInput.addEventListener('change', () => {
+      const f = photoInput.files?.[0];
+      selectedFile = f || null;
+      preview.innerHTML = '';
+      if (!f) {
+        preview.innerHTML = '<span class="muted">Предпросмотр появится после выбора изображения</span>';
+        return;
+      }
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(f);
+      preview.appendChild(img);
+    });
+
+    goBtn.addEventListener('click', async () => {
+      debugEl.textContent = '';
+      statusEl.textContent = '';
+      resultImg.removeAttribute('src');
+
+      if (!selectedFile) {
+        alert('Сначала выберите изображение комнаты.');
         return;
       }
 
-      placeholder.textContent = "⏳ Генерация дизайна...";
-      resultImg.classList.add("hidden");
+      const prompt = document.getElementById('prompt').value.trim();
+      const fd = new FormData();
+      fd.append('image', selectedFile, selectedFile.name || 'room.jpg');
+      fd.append('prompt', prompt);
 
-      const formData = new FormData();
-      formData.append("image", fileInput.files[0]); // поле обязательно называется "image"
-      formData.append("prompt", promptInput.value);
+      goBtn.disabled = true;
+      statusEl.textContent = 'Отправляем на сервер…';
 
       try {
-        const resp = await fetch("/api/redesign", {
-          method: "POST",
-          body: formData
-        });
-
-        const data = await resp.json();
-        if (data.ok && data.image) {
-          resultImg.src = data.image;
-          resultImg.classList.remove("hidden");
-          placeholder.textContent = "";
-        } else {
-          placeholder.textContent = "Ошибка: " + (data.error || "неизвестно");
+        const res = await fetch('/api/redesign', { method: 'POST', body: fd });
+        const ct = res.headers.get('content-type') || '';
+        if (!res.ok) {
+          const txt = await res.text();
+          statusEl.textContent = 'Ошибка API: ' + res.status;
+          debugEl.textContent = txt;
+          goBtn.disabled = false;
+          return;
         }
-      } catch (err) {
-        console.error(err);
-        placeholder.textContent = "Ошибка запроса: " + err.message;
+        if (ct.includes('application/json')) {
+          const j = await res.json();
+          if (j.ok && j.image) {
+            resultImg.src = j.image; // data:image/png;base64,...
+            statusEl.textContent = 'Готово ✅';
+          } else {
+            statusEl.textContent = 'Ответ без изображения';
+            debugEl.textContent = JSON.stringify(j, null, 2);
+          }
+        } else {
+          // если сервер вернул бинарный PNG
+          const blob = await res.blob();
+          resultImg.src = URL.createObjectURL(blob);
+          statusEl.textContent = 'Готово ✅';
+        }
+      } catch (e) {
+        statusEl.textContent = 'Сетевая ошибка';
+        debugEl.textContent = String(e && e.stack || e);
+      } finally {
+        goBtn.disabled = false;
       }
     });
   </script>
