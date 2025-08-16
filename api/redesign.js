@@ -1,79 +1,61 @@
-// api/redesign.js — Vercel Serverless Function (Node.js runtime)
-const Busboy = require('busboy');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const { OpenAI } = require('openai');
+import OpenAI from "openai";
+import Busboy from "busboy";
+import fs from "fs";
+import path from "path";
+import os from "os";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Разбор multipart/form-data через busboy
-function parseMultipart(req) {
-  return new Promise((resolve, reject) => {
-    try {
-      const bb = Busboy({ headers: req.headers });
-      let prompt = '';
-      let filePath = '';
-      let fileName = '';
+export const config = { api: { bodyParser: false } };
 
-      bb.on('file', (_name, file, info) => {
-        fileName = info.filename || 'upload.jpg';
-        const tmp = path.join(os.tmpdir(), `${Date.now()}_${fileName}`);
-        const out = fs.createWriteStream(tmp);
-        file.pipe(out);
-        out.on('close', () => { filePath = tmp; });
-      });
-
-      bb.on('field', (name, val) => {
-        if (name === 'prompt') prompt = val;
-      });
-
-      bb.on('error', reject);
-
-      bb.on('finish', () => {
-        if (!filePath) return reject(new Error('Файл не получен'));
-        resolve({ prompt, filePath, fileName });
-      });
-
-      req.pipe(bb);
-    } catch (e) {
-      reject(e);
-    }
-  });
-}
-
-module.exports = async (req, res) => {
-  if (req.method !== 'POST') {
-    res.status(405).json({ ok: false, error: 'Method Not Allowed' });
-    return;
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ ok: false, error: "Only POST allowed" });
   }
 
   try {
-    const { prompt, filePath } = await parseMultipart(req);
+    const tmpdir = os.tmpdir();
+    const busboy = Busboy({ headers: req.headers });
 
-    // ВАЖНО: в SDK v4 используется images.edit (единственное число)
-    const result = await client.images.edit({
-      model: 'gpt-image-1',
-      image: fs.createReadStream(filePath),
-      prompt: prompt || 'Redesign this room in a modern, cozy, bright style',
-      size: '1024x1024'
-      // при необходимости можно добавить: response_format: 'b64_json'
-      // и вернуть base64; здесь возвращаем URL
+    let promptText = "";
+    let uploadedFilePath = "";
+
+    await new Promise((resolve, reject) => {
+      busboy.on("file", (fieldname, file, filename) => {
+        if (fieldname !== "image") {
+          file.resume(); // если другое поле
+          return;
+        }
+        const saveTo = path.join(tmpdir, filename);
+        uploadedFilePath = saveTo;
+        file.pipe(fs.createWriteStream(saveTo));
+      });
+
+      busboy.on("field", (name, val) => {
+        if (name === "prompt") promptText = val;
+      });
+
+      busboy.on("error", reject);
+      busboy.on("finish", resolve);
+
+      req.pipe(busboy);
     });
 
-    // Чистим временный файл
-    try { fs.unlinkSync(filePath); } catch {}
+    if (!uploadedFilePath) {
+      return res.status(400).json({ ok: false, error: "Файл не получен" });
+    }
 
-    const url = result?.data?.[0]?.url;
-    if (!url) throw new Error('Не удалось получить URL результата от OpenAI');
+    const response = await client.images.edit({
+      model: "gpt-image-1",
+      image: fs.createReadStream(uploadedFilePath),
+      prompt: promptText || "Новый интерьер",
+      size: "1024x1024"
+    });
 
+    const url = response.data[0].url;
     res.status(200).json({ ok: true, url });
   } catch (err) {
-    console.error('REDESIGN ERROR:', err);
-    res.status(500).json({
-      ok: false,
-      error: 'OpenAI error',
-      details: String(err?.message || err)
-    });
+    console.error("API error", err);
+    res.status(500).json({ ok: false, error: "OpenAI error", details: err.message });
   }
-};
+}
