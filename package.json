@@ -1,13 +1,9 @@
 {
-  "name": "remontai",
+  "name": "remontai-site",
   "version": "1.0.0",
   "private": true,
-  "type": "commonjs",
-  "scripts": {
-    "start": "node server.js"
-  },
   "dependencies": {
-    "busboy": "^1.6.0",
-    "openai": "^4.52.0"
+    "openai": "^4.54.0",
+    "formidable": "^3.5.2"
   }
 }
