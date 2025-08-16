@@ -2,132 +2,300 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1"
+  />
   <title>ДизайнИИ — редизайн комнаты</title>
   <style>
-    body { font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; margin: 24px; line-height: 1.5; }
-    h1 { margin-top: 0; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    .card { padding: 16px; border: 1px solid #eee; border-radius: 12px; background: #fff; }
-    label { display: block; font-weight: 600; margin-bottom: 8px; }
-    input[type="file"], textarea, input[type="text"] { width: 100%; box-sizing: border-box; }
-    textarea { min-height: 100px; resize: vertical;}
-    .actions { display:flex; gap:12px; align-items: center; }
-    button { padding: 10px 16px; border-radius: 8px; border: 0; background: #7c3aed; color:#fff; font-weight:600; cursor:pointer; }
-    button[disabled]{ opacity:.6; cursor:not-allowed;}
-    .muted { color:#666; font-size:14px;}
-    .imgwrap { display:flex; justify-content:center; align-items:center; background: #f7f7fb; border-radius:12px; height: 420px; overflow:hidden; }
-    .imgwrap img { max-width:100%; max-height:100%; object-fit:contain; display:block; }
-    .mono { font-family: ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; color:#555;}
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji;
+      background: #0b0c10;
+      color: #e6e6e6;
+    }
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+    }
+    h1 {
+      font-size: 28px;
+      line-height: 1.2;
+      margin: 0 0 16px;
+    }
+    .muted { opacity: .75; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: #111319;
+      border: 1px solid #1f2330;
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 12px;
+    }
+
+    .drop {
+      border: 1px dashed #2b3142;
+      border-radius: 14px;
+      padding: 12px;
+      height: 360px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: #aeb3c2;
+      background: #0f1117;
+    }
+    .drop img {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 12px;
+      display: none;
+    }
+    .drop.has-image img { display: block; }
+    .drop.has-image .hint { display: none; }
+
+    .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .row > * { flex: 1 1 auto; }
+
+    input[type="file"] {
+      display: inline-block;
+      border: 1px solid #2b3142;
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #0f1117;
+      color: #e6e6e6;
+      cursor: pointer;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 110px;
+      border: 1px solid #2b3142;
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: #0f1117;
+      color: #e6e6e6;
+      outline: none;
+      resize: vertical;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 16px;
+      background: #7c5cff;
+      color: white;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .btn:disabled { opacity: .6; cursor: not-allowed; }
+
+    .result-box {
+      border: 1px dashed #2b3142;
+      border-radius: 14px;
+      padding: 12px;
+      height: 360px;
+      display: grid;
+      place-items: center;
+      background: #0f1117;
+      text-align: center;
+      color: #aeb3c2;
+    }
+    .result-box img {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 12px;
+      display: none;
+    }
+    .result-box.has-image img { display: block; }
+    .result-box.has-image .hint { display: none; }
+
+    .progress {
+      height: 8px;
+      background: #1a1e2a;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 12px 0 0;
+      display: none;
+    }
+    .progress .bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg,#7c5cff,#72e6ff);
+      transition: width .25s ease;
+    }
+
+    .small { font-size: 12px; opacity: .8; }
+    .error {
+      color: #ff9da4;
+      font-size: 14px;
+      margin-top: 8px;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
-  <h1>ДизайнИИ — редизайн комнаты</h1>
-  <p class="muted">Загрузите фото комнаты, опишите пожелания — и получите визуализацию с новым стилем.</p>
+  <div class="page">
+    <h1>ДизайнИИ — редизайн комнаты</h1>
+    <div class="muted">Загрузите фото комнаты, опишите пожелания — и получите визуализацию с новым стилем.</div>
 
-  <div class="row">
-    <div class="card">
-      <label>Фото комнаты</label>
-      <input id="photo" type="file" accept="image/*" />
-      <div id="orig" class="imgwrap" style="margin-top:12px;">
-        <span class="muted">Предпросмотр появится после выбора изображения</span>
+    <div style="height: 18px"></div>
+
+    <div class="grid">
+      <!-- ЛЕВО: загрузка + пожелания -->
+      <div class="card">
+        <div class="section-title">Фото комнаты</div>
+        <div class="row">
+          <input id="file-input" type="file" accept="image/*" />
+        </div>
+
+        <div style="height: 12px"></div>
+
+        <div id="drop" class="drop">
+          <div class="hint">Предпросмотр появится после выбора изображения</div>
+          <img id="preview" alt="Предпросмотр" />
+        </div>
+
+        <div style="height: 16px"></div>
+
+        <div class="section-title">Пожелания</div>
+        <textarea
+          id="wish-input"
+          placeholder="Например: светлый сканди с деревянной мебелью, добавить больше дневного света…"
+        ></textarea>
+
+        <div style="height: 12px"></div>
+
+        <div class="row">
+          <button id="start-generation" class="btn">Сгенерировать</button>
+        </div>
+
+        <div id="progress" class="progress"><div class="bar"></div></div>
+        <div id="error" class="error" style="display:none"></div>
+        <div class="small muted" style="margin-top:8px">
+          Картинка генерируется на стороне сервера (OpenAI). Первая генерация может идти дольше.
+        </div>
       </div>
 
-      <div style="margin-top:16px">
-        <label>Пожелания</label>
-        <textarea id="prompt" placeholder="Например: светлый сканди с деревянной мебелью, добавить больше дневного света..."></textarea>
-      </div>
-
-      <div class="actions" style="margin-top:16px;">
-        <button id="go">Сгенерировать дизайн</button>
-        <span id="status" class="muted"></span>
-      </div>
-
-      <details style="margin-top:16px;">
-        <summary class="muted">Отладочная информация</summary>
-        <div class="mono" id="debug"></div>
-      </details>
-    </div>
-
-    <div class="card">
-      <label>Результат</label>
-      <div class="imgwrap">
-        <img id="result" alt="Результат появится здесь" />
+      <!-- ПРАВО: результат -->
+      <div class="card">
+        <div class="section-title">Результат</div>
+        <div id="result-box" class="result-box">
+          <div class="hint">Результат появится здесь</div>
+          <img id="result-image" alt="Результат" />
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    const photoInput = document.getElementById('photo');
-    const preview = document.getElementById('orig');
-    const statusEl = document.getElementById('status');
-    const debugEl = document.getElementById('debug');
-    const resultImg = document.getElementById('result');
-    const goBtn = document.getElementById('go');
+    // --- state
+    let uploadedFile = null;
+    let lastPrompt = '';
 
-    let selectedFile = null;
-
-    photoInput.addEventListener('change', () => {
-      const f = photoInput.files?.[0];
-      selectedFile = f || null;
-      preview.innerHTML = '';
-      if (!f) {
-        preview.innerHTML = '<span class="muted">Предпросмотр появится после выбора изображения</span>';
+    // --- helpers
+    const $ = (sel) => document.querySelector(sel);
+    const showError = (msg) => {
+      const el = $('#error');
+      el.textContent = msg;
+      el.style.display = msg ? 'block' : 'none';
+    };
+    const setProgress = (value, show = true) => {
+      const wrap = $('#progress');
+      const bar  = wrap.querySelector('.bar');
+      if (!show) {
+        wrap.style.display = 'none';
+        bar.style.width = '0%';
         return;
       }
-      const img = document.createElement('img');
-      img.src = URL.createObjectURL(f);
-      preview.appendChild(img);
+      wrap.style.display = 'block';
+      bar.style.width = `${Math.max(0, Math.min(100, value))}%`;
+    };
+
+    // --- file input
+    $('#file-input').addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+      uploadedFile = file;
+      showError('');
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          $('#preview').src = reader.result;
+          $('#drop').classList.add('has-image');
+        };
+        reader.readAsDataURL(file);
+      } else {
+        $('#drop').classList.remove('has-image');
+        $('#preview').src = '';
+      }
     });
 
-    goBtn.addEventListener('click', async () => {
-      debugEl.textContent = '';
-      statusEl.textContent = '';
-      resultImg.removeAttribute('src');
+    // --- wish input
+    $('#wish-input').addEventListener('input', (e) => {
+      lastPrompt = e.target.value.trim();
+    });
 
-      if (!selectedFile) {
-        alert('Сначала выберите изображение комнаты.');
-        return;
-      }
-
-      const prompt = document.getElementById('prompt').value.trim();
-      const fd = new FormData();
-      fd.append('image', selectedFile, selectedFile.name || 'room.jpg');
-      fd.append('prompt', prompt);
-
-      goBtn.disabled = true;
-      statusEl.textContent = 'Отправляем на сервер…';
-
+    // --- click generate
+    $('#start-generation').addEventListener('click', async () => {
       try {
-        const res = await fetch('/api/redesign', { method: 'POST', body: fd });
-        const ct = res.headers.get('content-type') || '';
-        if (!res.ok) {
-          const txt = await res.text();
-          statusEl.textContent = 'Ошибка API: ' + res.status;
-          debugEl.textContent = txt;
-          goBtn.disabled = false;
+        showError('');
+        if (!uploadedFile) {
+          showError('Сначала выберите фото комнаты.');
           return;
         }
-        if (ct.includes('application/json')) {
-          const j = await res.json();
-          if (j.ok && j.image) {
-            resultImg.src = j.image; // data:image/png;base64,...
-            statusEl.textContent = 'Готово ✅';
-          } else {
-            statusEl.textContent = 'Ответ без изображения';
-            debugEl.textContent = JSON.stringify(j, null, 2);
-          }
-        } else {
-          // если сервер вернул бинарный PNG
-          const blob = await res.blob();
-          resultImg.src = URL.createObjectURL(blob);
-          statusEl.textContent = 'Готово ✅';
+
+        // prepare multipart form
+        const fd = new FormData();
+        fd.append('image', uploadedFile, uploadedFile.name);
+        fd.append('prompt', lastPrompt || '');
+
+        $('#start-generation').disabled = true;
+        setProgress(10, true);
+
+        const res = await fetch('/api/redesign', { method: 'POST', body: fd });
+
+        setProgress(60, true);
+
+        if (!res.ok) {
+          const t = await res.text().catch(() => '');
+          throw new Error(`API ${res.status}. ${t || 'Сервер не ответил корректно.'}`);
         }
-      } catch (e) {
-        statusEl.textContent = 'Сетевая ошибка';
-        debugEl.textContent = String(e && e.stack || e);
+
+        /** @type {{ok: boolean, image?: string, error?: string}} */
+        const data = await res.json();
+
+        if (!data.ok) {
+          throw new Error(data.error || 'Неизвестная ошибка API');
+        }
+
+        // show result
+        const imgUrl = data.image;
+        $('#result-image').src = imgUrl;
+        $('#result-box').classList.add('has-image');
+        setProgress(100, true);
+        setTimeout(() => setProgress(0, false), 600);
+      } catch (err) {
+        console.error(err);
+        setProgress(0, false);
+        showError(String(err.message || err));
       } finally {
-        goBtn.disabled = false;
+        $('#start-generation').disabled = false;
       }
     });
   </script>
