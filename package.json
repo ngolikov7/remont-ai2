@@ -1,5 +1,10 @@
 {
-  "name": "vercel-plain-smoke",
+  "name": "remontai-openai",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "busboy": "^1.6.0",
+    "openai": "^4.52.0"
+  }
 }
