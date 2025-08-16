@@ -1,9 +1,5 @@
 {
-  "name": "remontai-site",
+  "name": "vercel-plain-smoke",
   "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "openai": "^4.54.0",
-    "formidable": "^3.5.2"
-  }
+  "private": true
 }
