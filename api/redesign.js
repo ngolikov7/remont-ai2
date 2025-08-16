@@ -1,65 +1,80 @@
-const Busboy = require('busboy');
-const OpenAI = require('openai').default;
-const { toFile } = require('openai/uploads');
+// api/redesign.js
+// Node.js serverless-функция на Vercel
 
-module.exports = async (req, res) => {
-  if (req.method !== 'POST') {
-    res.status(405).json({ ok: false, error: 'Method not allowed' });
+const { IncomingForm } = require("formidable");
+const fs = require("fs");
+const OpenAI = require("openai");
+
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// говорим Vercel не парсить тело (нам нужно multipart)
+module.exports.config = {
+  api: { bodyParser: false },
+};
+
+module.exports = async function handler(req, res) {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "Method not allowed" });
     return;
   }
 
-  const parseForm = () =>
-    new Promise((resolve, reject) => {
-      const bb = Busboy({ headers: req.headers });
-      const fields = {};
-      let fileBuffer = null;
-      let fileName = 'upload.png';
-      let mimeType = 'image/png';
-
-      bb.on('file', (name, file, info) => {
-        const { filename, mimeType: mt } = info || {};
-        fileName = filename || fileName;
-        mimeType = mt || mimeType;
-        const chunks = [];
-        file.on('data', (d) => chunks.push(d));
-        file.on('end', () => { fileBuffer = Buffer.concat(chunks); });
-      });
-
-      bb.on('field', (name, val) => { fields[name] = val; });
-      bb.on('error', reject);
-      bb.on('close', () => resolve({ fields, file: { buffer: fileBuffer, filename: fileName, mime: mimeType } }));
-      req.pipe(bb);
-    });
-
   try {
-    const { fields, file } = await parseForm();
-    if (!file || !file.buffer) {
-      res.status(400).json({ ok: false, error: 'Не получен файл "image"' });
-      return;
-    }
+    const { fields, fileBuffer, mime } = await parseMultipart(req);
 
-    const prompt = (fields.prompt || '').trim() ||
-      'Светлый современный интерьер комнаты, минимализм, уют, реалистичный результат, высокое качество.';
+    // Собираем промпт
+    const style = (fields.style || "modern").toString();
+    const extra = (fields.wishes || "").toString();
+    const prompt = `Redesign this room photo to "${style}" style. Keep layout and geometry. ${extra}`.trim();
 
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const imageFile = await toFile(file.buffer, file.filename || 'image.png', { type: file.mime || 'image/png' });
-
-    const resp = await openai.images.edits({
-      model: 'gpt-image-1',
-      image: imageFile,
+    // ⚠️ Для простоты MVP не редактируем исходную картинку,
+    // а просто генерируем новую сцену (можно позже заменить на image edit).
+    const img = await client.images.generate({
+      model: "gpt-image-1",
       prompt,
-      size: '1024x1024'
+      size: "1024x1024",
+      // если хочешь использовать загруженную картинку — будем переходить на edits
+      // и отправлять её как image[]/mask[], но это уже другой маршрут.
     });
 
-    const b64 = resp?.data?.[0]?.b64_json;
-    if (!b64) {
-      res.status(500).json({ ok: false, error: 'OpenAI: пустой ответ' });
-      return;
-    }
+    const b64 = img.data[0].b64_json;
+    const dataUrl = `data:image/png;base64,${b64}`;
 
-    res.setHeader('Cache-Control', 'no-store');
-    res.status(200).json({ ok: true, image: `data:image/png;base64,${b64}` });
-  } catch (e) {
-    res.status(500).json({ ok: false, error: String(e?.message || e) });
+    res.status(200).json({ ok: true, imageUrl: dataUrl });
+  } catch (err) {
+    console.error("API /api/redesign error:", err);
+    res.status(500).json({ ok: false, error: err.message || "Server error" });
   }
 };
+
+// ---------- helpers ----------
+
+function parseMultipart(req) {
+  return new Promise((resolve, reject) => {
+    const form = new IncomingForm({
+      multiples: false,
+      keepExtensions: true,
+      maxFileSize: 15 * 1024 * 1024, // 15MB
+    });
+
+    form.parse(req, (err, fields, files) => {
+      if (err) return reject(err);
+
+      // файл может лежать в files.image
+      const file = files?.image;
+      let fileBuffer = null;
+      let mime = null;
+
+      if (file && !Array.isArray(file)) {
+        try {
+          fileBuffer = fs.readFileSync(file.filepath);
+          mime = file.mimetype || "image/jpeg";
+        } catch (e) {
+          // необязательный файл — не падаем
+          fileBuffer = null;
+        }
+      }
+
+      resolve({ fields, fileBuffer, mime });
+    });
+  });
+}
