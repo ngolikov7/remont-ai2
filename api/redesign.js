@@ -1,80 +1,61 @@
 // api/redesign.js
-// Node.js serverless-функция на Vercel
+const fs = require('fs');
+const formidable = require('formidable');
+const OpenAI = require('openai');
 
-const { IncomingForm } = require("formidable");
-const fs = require("fs");
-const OpenAI = require("openai");
-
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-// говорим Vercel не парсить тело (нам нужно multipart)
-module.exports.config = {
-  api: { bodyParser: false },
-};
-
-module.exports = async function handler(req, res) {
-  if (req.method !== "POST") {
-    res.status(405).json({ error: "Method not allowed" });
+module.exports = async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).json({ ok: false, error: 'Method Not Allowed' });
     return;
   }
 
+  // парсим multipart/form-data
+  const form = formidable({ multiples: false, keepExtensions: true });
+
   try {
-    const { fields, fileBuffer, mime } = await parseMultipart(req);
-
-    // Собираем промпт
-    const style = (fields.style || "modern").toString();
-    const extra = (fields.wishes || "").toString();
-    const prompt = `Redesign this room photo to "${style}" style. Keep layout and geometry. ${extra}`.trim();
-
-    // ⚠️ Для простоты MVP не редактируем исходную картинку,
-    // а просто генерируем новую сцену (можно позже заменить на image edit).
-    const img = await client.images.generate({
-      model: "gpt-image-1",
-      prompt,
-      size: "1024x1024",
-      // если хочешь использовать загруженную картинку — будем переходить на edits
-      // и отправлять её как image[]/mask[], но это уже другой маршрут.
+    const { fields, files } = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => (err ? reject(err) : resolve({ fields, files })));
     });
 
-    const b64 = img.data[0].b64_json;
-    const dataUrl = `data:image/png;base64,${b64}`;
+    const prompt =
+      (Array.isArray(fields.prompt) ? fields.prompt[0] : fields.prompt) ||
+      'Светлый современный интерьер, аккуратный ремонт, чистые линии, дерево и текстиль.';
 
-    res.status(200).json({ ok: true, imageUrl: dataUrl });
+    const imageFile = Array.isArray(files.image) ? files.image[0] : files.image;
+    if (!imageFile) {
+      res.status(400).json({ ok: false, error: 'Файл не найден (поле должно называться "image")' });
+      return;
+    }
+
+    const buffer = fs.readFileSync(imageFile.filepath);
+    const mime = imageFile.mimetype || 'image/jpeg';
+
+    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    // NB: Именно этот вызов и модель `gpt-image-1`
+    // у многих аккаунтов сейчас требуют верификацию организации.
+    // Поэтому при корректной отправке ты увидишь 403 с текстом про Verify Organization.
+    const r = await client.images.generate({
+      model: 'gpt-image-1',
+      prompt,
+      // передаём исходную фотографию в запрос (image-to-image)
+      // большинство пользователей сейчас видят здесь 403 с сообщением про Verify Organization.
+      image: [{ buffer, mime_type: mime }],
+      size: '1024x1024',
+      response_format: 'b64_json'
+    });
+
+    const b64 = r.data[0].b64_json;
+    res.status(200).json({ ok: true, imageBase64: b64 });
   } catch (err) {
-    console.error("API /api/redesign error:", err);
-    res.status(500).json({ ok: false, error: err.message || "Server error" });
+    // пробрасываем понятную ошибку наружу (как в прошлый раз)
+    res
+      .status(500)
+      .json({ ok: false, error: err.message, details: err.response?.data || null });
   }
 };
 
-// ---------- helpers ----------
-
-function parseMultipart(req) {
-  return new Promise((resolve, reject) => {
-    const form = new IncomingForm({
-      multiples: false,
-      keepExtensions: true,
-      maxFileSize: 15 * 1024 * 1024, // 15MB
-    });
-
-    form.parse(req, (err, fields, files) => {
-      if (err) return reject(err);
-
-      // файл может лежать в files.image
-      const file = files?.image;
-      let fileBuffer = null;
-      let mime = null;
-
-      if (file && !Array.isArray(file)) {
-        try {
-          fileBuffer = fs.readFileSync(file.filepath);
-          mime = file.mimetype || "image/jpeg";
-        } catch (e) {
-          // необязательный файл — не падаем
-          fileBuffer = null;
-        }
-      }
-
-      resolve({ fields, fileBuffer, mime });
-    });
-  });
-}
+// Для Node-функции на Vercel это не обязательно, но не мешает
+module.exports.config = {
+  api: { bodyParser: false }
+};
