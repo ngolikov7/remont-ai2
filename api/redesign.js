@@ -1,91 +1,118 @@
 // api/redesign.js
-import Busboy from 'busboy';
+// Serverless-функция Vercel (Node.js), CommonJS.
+// Принимает multipart/form-data: fields:  image (file), prompt (string).
+// Делает запрос в OpenAI (gpt-image-1) и отдаёт dataURL с картинкой.
 
-export const config = {
-  api: {
-    bodyParser: false, // мы сами парсим multipart
-  },
-};
+const Busboy = require('busboy');
+const FormData = require('form-data');
 
 function parseMultipart(req) {
   return new Promise((resolve, reject) => {
-    const bb = Busboy({ headers: req.headers });
-    let prompt = '';
-    let fileBuffer = null;
-    let fileName = 'image.jpg';
-    let mime = 'image/jpeg';
+    try {
+      const bb = Busboy({ headers: req.headers });
+      let prompt = '';
+      /** @type {{buffer: Buffer, filename: string, mime: string} | null} */
+      let image = null;
 
-    bb.on('file', (name, file, info) => {
-      const chunks = [];
-      if (info?.filename) fileName = info.filename;
-      if (info?.mimeType) mime = info.mimeType;
-      file.on('data', (d) => chunks.push(d));
-      file.on('end', () => { fileBuffer = Buffer.concat(chunks); });
-    });
+      bb.on('file', (name, file, info) => {
+        const { filename, mimeType } = info;
+        const chunks = [];
+        file.on('data', (c) => chunks.push(c));
+        file.on('end', () => {
+          image = {
+            buffer: Buffer.concat(chunks),
+            filename: filename || 'image.png',
+            mime: mimeType || 'image/png',
+          };
+        });
+      });
 
-    bb.on('field', (name, val) => {
-      if (name === 'prompt') prompt = (val || '').toString();
-    });
+      bb.on('field', (name, val) => {
+        if (name === 'prompt') prompt = (val || '').toString();
+      });
 
-    bb.on('error', reject);
-    bb.on('finish', () => resolve({ prompt, fileBuffer, fileName, mime }));
-    req.pipe(bb);
+      bb.on('error', reject);
+      bb.on('finish', () => resolve({ prompt, image }));
+
+      req.pipe(bb);
+    } catch (e) {
+      reject(e);
+    }
   });
 }
 
-export default async function handler(req, res) {
-  if (req.method === 'GET') {
-    res.status(200).json({ ok: true, hint: 'POST multipart: image + prompt' });
+async function callOpenAI({ prompt, image }) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY не задан в переменных окружения');
+  }
+
+  const form = new FormData();
+  form.append('model', 'gpt-image-1');
+  form.append('prompt', prompt || '');
+  form.append('size', '1024x1024');
+  // OpenAI принимает image[] — но одиночный файл тоже работает, указываем именно таким полем.
+  form.append('image[]', image.buffer, {
+    filename: image.filename,
+    contentType: image.mime,
+    knownLength: image.buffer.length,
+  });
+
+  const res = await fetch('https://api.openai.com/v1/images/edits', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      ...form.getHeaders(),
+    },
+    body: form,
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`OpenAI ${res.status}: ${text}`);
+  }
+
+  const json = await res.json();
+  const b64 = json?.data?.[0]?.b64_json;
+  if (!b64) {
+    throw new Error('OpenAI не вернул изображение');
+  }
+  return `data:image/png;base64,${b64}`;
+}
+
+module.exports = async (req, res) => {
+  // CORS (на будущее, если понадобится дергать с другого домена)
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    res.statusCode = 204;
+    res.end();
     return;
   }
+
   if (req.method !== 'POST') {
-    res.status(405).json({ ok: false, error: 'Method Not Allowed' });
+    res.statusCode = 405;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify({ ok: false, error: 'Method Not Allowed' }));
     return;
   }
 
   try {
-    const { prompt, fileBuffer, fileName, mime } = await parseMultipart(req);
-    if (!fileBuffer) {
-      res.status(400).json({ ok: false, error: 'image is required' });
-      return;
+    const { prompt, image } = await parseMultipart(req);
+    if (!image || !image.buffer?.length) {
+      throw new Error('Файл изображения не получен (поле "image").');
     }
+    const dataUrl = await callOpenAI({ prompt, image });
 
-    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-    if (!OPENAI_API_KEY) {
-      res.status(500).json({ ok: false, error: 'OPENAI_API_KEY is not set' });
-      return;
-    }
-
-    // Собираем форм-дату для OpenAI Images Edits
-    const fd = new FormData();
-    fd.append('model', 'gpt-image-1');
-    fd.append('size', '1024x1024');
-    if (prompt && prompt.length) fd.append('prompt', prompt);
-    // основной кадр без маски — редизайн всей сцены
-    fd.append('image', new Blob([fileBuffer], { type: mime }), fileName);
-
-    const r = await fetch('https://api.openai.com/v1/images/edits', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
-      body: fd,
-    });
-
-    if (!r.ok) {
-      const txt = await r.text();
-      res.status(r.status).send(txt);
-      return;
-    }
-
-    const j = await r.json();
-    // Обычно приходит data[0].b64_json
-    const b64 = j?.data?.[0]?.b64_json;
-    if (!b64) {
-      res.status(200).json(j); // на всякий — вернём как есть
-      return;
-    }
-
-    res.status(200).json({ ok: true, image: `data:image/png;base64,${b64}` });
-  } catch (e) {
-    res.status(500).json({ ok: false, error: String(e && e.stack || e) });
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify({ ok: true, image: dataUrl }));
+  } catch (err) {
+    console.error('[api/redesign] error:', err);
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify({ ok: false, error: String(err.message || err) }));
   }
-}
+};
