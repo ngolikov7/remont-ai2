@@ -1,433 +1,377 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ДизайнИИ — редизайн комнаты</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ДизайнИИ — умный ремонт</title>
 
   <!-- Tailwind (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Ctext y='56' font-size='56'%3E%F0%9F%8F%A0%3C/text%3E%3C/svg%3E" />
+
   <style>
-    .step-dot{width:32px;height:32px}
-    .hidden-el{display:none}
+    .step-active{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff}
+    .step-inactive{background:#f3f4f6;color:#6b7280}
+    .upload-area{border:2px dashed #d1d5db;transition:all .3s ease}
+    .upload-area:hover{border-color:#667eea;background:#f8faff}
+    .ai-thinking{animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
   </style>
-</head> 
-<body class="bg-gray-50 text-gray-900">
-  <header class="w-full border-b bg-white/70 sticky top-0 backdrop-blur z-30">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center gap-3">
-      <div class="text-2xl">🏠</div>
-      <div>
-        <div class="text-xl font-bold">ДизайнИИ</div>
-        <div class="text-sm text-gray-500">Умный ремонт с искусственным интеллектом</div>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">🏠</div>
+        <h1 class="text-2xl font-bold text-gray-900">ДизайнИИ</h1>
       </div>
+      <div class="text-sm text-gray-600">Умный ремонт с искусственным интеллектом</div>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 pb-24">
-    <!-- Steps header -->
-    <nav id="steps" class="grid grid-cols-6 gap-3 mt-6">
-      <div class="flex items-center gap-2">
-        <span class="step-dot rounded-full flex items-center justify-center bg-purple-600 text-white font-bold">1</span>
-        <span class="font-medium">Загрузка фото</span>
-      </div>
-      <div class="flex items-center gap-2 opacity-50" data-step="2">
-        <span class="step-dot rounded-full flex items-center justify-center bg-gray-200 text-gray-600 font-bold">2</span>
-        <span class="font-medium">Параметры</span>
-      </div>
-      <div class="flex items-center gap-2 opacity-50" data-step="3">
-        <span class="step-dot rounded-full flex items-center justify-center bg-gray-200 text-gray-600 font-bold">3</span>
-        <span class="font-medium">Пожелания</span>
-      </div>
-      <div class="flex items-center gap-2 opacity-50" data-step="4">
-        <span class="step-dot rounded-full flex items-center justify-center bg-gray-200 text-gray-600 font-bold">4</span>
-        <span class="font-medium">Генерация</span>
-      </div>
-      <div class="flex items-center gap-2 opacity-50" data-step="5">
-        <span class="step-dot rounded-full flex items-center justify-center bg-gray-200 text-gray-600 font-bold">5</span>
-        <span class="font-medium">Правки</span>
-      </div>
-      <div class="flex items-center gap-2 opacity-50" data-step="6">
-        <span class="step-dot rounded-full flex items-center justify-center bg-gray-200 text-gray-600 font-bold">6</span>
-        <span class="font-medium">План ремонта</span>
-      </div>
-    </nav>
-
-    <!-- progress line -->
-    <div class="w-full h-2 bg-gray-200 rounded mt-3">
-      <div id="progress" class="h-2 bg-purple-600 rounded transition-all" style="width: 16%"></div>
+  <!-- Steps -->
+  <div class="max-w-7xl mx-auto px-4 py-6">
+    <div class="flex items-center space-x-4 mb-8">
+      <div id="step1Chip" class="step-active px-4 py-2 rounded-full text-sm font-medium">1 Загрузка фото</div>
+      <div class="w-8 h-0.5 bg-gray-300"></div>
+      <div id="step2Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">2 Параметры</div>
+      <div class="w-8 h-0.5 bg-gray-300"></div>
+      <div id="step3Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">3 Пожелания</div>
+      <div class="w-8 h-0.5 bg-gray-300"></div>
+      <div id="step4Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">4 Генерация</div>
+      <div class="w-8 h-0.5 bg-gray-300"></div>
+      <div id="step5Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">5 Правки</div>
+      <div class="w-8 h-0.5 bg-gray-300"></div>
+      <div id="step6Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">6 План ремонта</div>
     </div>
 
-    <!-- Step 1: Upload -->
-    <section id="step1" class="mt-8 bg-white rounded-xl shadow p-6">
-      <h2 class="text-2xl font-bold mb-2">Загрузите фотографию вашей комнаты</h2>
-      <p class="text-gray-600 mb-4">Поддерживаются JPG/PNG/WEBP (до 10 МБ)</p>
+    <!-- Step 1: upload -->
+    <section id="upload-section" class="bg-white rounded-xl shadow-lg p-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Загрузите фотографию вашей комнаты</h2>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="border-2 border-dashed rounded-xl min-h-[320px] flex flex-col items-center justify-center p-6 text-center">
-          <input id="file" type="file" accept="image/*" class="hidden" />
-          <button id="pickFile" class="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition">
-            Выбрать файл
-          </button>
-          <p id="fileName" class="mt-3 text-sm text-gray-500">Файл не выбран</p>
-          <img id="preview" alt="Предпросмотр" class="hidden-el mt-4 max-h-64 rounded shadow" />
+      <div class="upload-area rounded-lg p-12 text-center cursor-pointer" id="upload-area">
+        <div id="upload-content">
+          <div class="text-6xl mb-4">📷</div>
+          <h3 class="text-xl font-semibold text-gray-700 mb-2">Перетащите фото сюда или нажмите для выбора</h3>
+          <p class="text-gray-500">Поддерживаются JPG/PNG/WEBP (до 10 МБ)</p>
         </div>
 
-        <div class="bg-gray-50 rounded-xl p-4 flex flex-col justify-between">
-          <div>
-            <h3 class="font-semibold mb-2">Подсказка</h3>
-            <p class="text-sm text-gray-600">
-              Для лучшего результата используйте фото при дневном освещении, без сильных пересветов. Прямой ракурс на комнату — самое то.
-            </p>
-          </div>
-          <div class="mt-6 text-right">
-            <button id="toStep2" disabled class="px-4 py-2 rounded-lg bg-gray-300 text-gray-600 cursor-not-allowed">
-              Далее → Параметры
-            </button>
-          </div>
+        <div id="preview-content" class="hidden">
+          <img id="preview-image" class="max-w-full max-h-64 mx-auto rounded-lg shadow-md mb-3" alt="Предпросмотр"/>
+          <p class="text-green-600 font-medium">✅ Фото загружено успешно</p>
         </div>
       </div>
+
+      <input id="fileInput" type="file" accept="image/*" class="hidden" />
+      <button id="next-to-params" class="hidden mt-6 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:from-purple-600 hover:to-blue-600 transition">
+        Далее: Параметры комнаты →
+      </button>
     </section>
 
-    <!-- Step 2: Parameters (минимум полей, можно расширять) -->
-    <section id="step2" class="mt-8 bg-white rounded-xl shadow p-6 hidden-el">
-      <h2 class="text-2xl font-bold mb-2">Параметры</h2>
-      <p class="text-gray-600 mb-4">Выберите базовый стиль (необязательно, пожелания будут важнее).</p>
+    <!-- Step 2: params -->
+    <section id="params-section" class="hidden bg-white rounded-xl shadow-lg p-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Параметры вашей комнаты</h2>
 
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <label class="flex items-center gap-2">
-          <input type="radio" name="style" value="сканди" class="text-purple-600" />
-          <span>Скандинавский</span>
-        </label>
-        <label class="flex items-center gap-2">
-          <input type="radio" name="style" value="минимализм" class="text-purple-600" />
-          <span>Минимализм</span>
-        </label>
-        <label class="flex items-center gap-2">
-          <input type="radio" name="style" value="лофт" class="text-purple-600" />
-          <span>Лофт</span>
-        </label>
-      </div>
-
-      <div class="mt-6 flex justify-between">
-        <button class="px-4 py-2 rounded-lg border" data-back="1">← Назад</button>
-        <button id="toStep3" class="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700">
-          Далее → Пожелания
-        </button>
-      </div>
-    </section>
-
-    <!-- Step 3: Wishes -->
-    <section id="step3" class="mt-8 bg-white rounded-xl shadow p-6 hidden-el">
-      <h2 class="text-2xl font-bold mb-2">Пожелания</h2>
-      <p class="text-gray-600 mb-4">Опишите, чего хотите добиться (цвет, свет, мебель, атмосфера, бюджет и т.п.).</p>
-
-      <textarea id="wishes" rows="4" class="w-full rounded-lg border p-3"
-        placeholder="Например: светлый сканди, больше дневного света, заменить шторы и ковер, убрать визуальный шум..."></textarea>
-
-      <div class="mt-6 flex justify-between">
-        <button class="px-4 py-2 rounded-lg border" data-back="2">← Назад</button>
-        <button id="toStep4" class="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700">
-          Далее → Генерация
-        </button>
-      </div>
-    </section>
-
-    <!-- Step 4: Generation -->
-    <section id="step4" class="mt-8 bg-white rounded-xl shadow p-6 hidden-el">
-      <h2 class="text-2xl font-bold mb-2">Генерация</h2>
-      <p class="text-gray-600 mb-4">Нажмите «Сгенерировать», чтобы получить визуализацию с учётом пожеланий.</p>
-
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <h3 class="font-semibold mb-2">Исходное фото</h3>
-          <img id="sourceSmall" class="w-full max-h-[360px] object-contain rounded border" alt="Исходное"/>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Длина (м)</label>
+          <input id="room-length" type="number" class="w-full px-4 py-3 border rounded-lg" placeholder="4.5">
         </div>
         <div>
-          <h3 class="font-semibold mb-2">Новый дизайн</h3>
-          <div class="bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg p-4 h-[360px] flex items-center justify-center">
-            <img id="result" class="max-h-[320px] object-contain hidden-el rounded border bg-white" alt="Результат"/>
-            <span id="resultPh" class="text-gray-700 text-center">🎨 Результат появится здесь</span>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Ширина (м)</label>
+          <input id="room-width" type="number" class="w-full px-4 py-3 border rounded-lg" placeholder="3.2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Высота потолка (м)</label>
+          <input id="room-height" type="number" class="w-full px-4 py-3 border rounded-lg" placeholder="2.7">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Тип комнаты</label>
+          <select id="room-type" class="w-full px-4 py-3 border rounded-lg">
+            <option value="">Выберите</option>
+            <option value="Гостиная">Гостиная</option>
+            <option value="Спальня">Спальня</option>
+            <option value="Кухня">Кухня</option>
+            <option value="Ванная">Ванная</option>
+            <option value="Кабинет">Кабинет</option>
+            <option value="Детская">Детская</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="next-to-wishes" class="mt-6 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:from-purple-600 hover:to-blue-600 transition">
+        Далее: Ваши пожелания →
+      </button>
+    </section>
+
+    <!-- Step 3: wishes -->
+    <section id="wishes-section" class="hidden bg-white rounded-xl shadow-lg p-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Ваши пожелания</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Стиль интерьера</label>
+          <select id="style" class="w-full px-4 py-3 border rounded-lg">
+            <option value="">Выберите стиль</option>
+            <option>Современный</option>
+            <option>Классический</option>
+            <option>Скандинавский</option>
+            <option>Лофт</option>
+            <option>Минимализм</option>
+            <option>Неоклассика</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Бюджет (руб.)</label>
+          <select id="budget" class="w-full px-4 py-3 border rounded-lg">
+            <option value="">Выберите бюджет</option>
+            <option>До 100 000</option>
+            <option>100 000 – 300 000</option>
+            <option>300 000 – 500 000</option>
+            <option>500 000 – 1 000 000</option>
+            <option>Более 1 000 000</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Дополнительные пожелания</label>
+        <textarea id="additional-wishes" rows="4" class="w-full px-4 py-3 border rounded-lg" placeholder="Цвета, мебель, освещение, особые требования…"></textarea>
+      </div>
+
+      <button id="start-generation" class="mt-6 bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:from-green-600 hover:to-blue-600 transition">
+        🎨 Начать генерацию дизайна
+      </button>
+    </section>
+
+    <!-- Step 4: generation -->
+    <section id="generation-section" class="hidden bg-white rounded-xl shadow-lg p-8">
+      <div class="text-center">
+        <div class="ai-thinking text-6xl mb-4">🤖</div>
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">ИИ создает дизайн вашей комнаты</h2>
+        <p id="progress-text" class="text-gray-600 mb-6">Инициализация…</p>
+        <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+          <div id="progress-bar" class="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full" style="width:0%"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 5: review -->
+    <section id="review-section" class="hidden bg-white rounded-xl shadow-lg p-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Ваш новый дизайн готов!</h2>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Исходное фото</h3>
+          <div class="bg-gray-100 rounded-lg p-4 min-h-64 flex items-center justify-center">
+            <img id="final-origin" class="max-h-56 rounded" alt="Исходное" />
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Новый дизайн</h3>
+          <div class="bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg p-4 min-h-64 flex items-center justify-center">
+            <img id="result-image" class="max-h-60 object-contain hidden" alt="Сгенерированный дизайн"/>
+            <span id="result-placeholder" class="text-gray-700 text-center">⏳ Генерируем визуализацию…</span>
           </div>
         </div>
       </div>
 
-      <div class="mt-6 flex items-center gap-3">
-        <button class="px-4 py-2 rounded-lg border" data-back="3">← Назад</button>
-        <button id="btnGen" class="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700">
-          Сгенерировать
-        </button>
+      <div class="mt-8">
+        <h3 class="text-lg font-semibold mb-4">Чат с ИИ для правок</h3>
 
-        <div id="genState" class="text-sm text-gray-600 hidden-el">
-          <span class="animate-pulse">Генерируем…</span>
-        </div>
-      </div>
-
-      <div id="alert" class="mt-4 hidden-el p-3 rounded bg-red-50 text-red-800 text-sm"></div>
-
-      <div class="mt-6 flex justify-end">
-        <button id="toStep5" disabled class="px-4 py-2 rounded-lg bg-gray-300 text-gray-600 cursor-not-allowed">
-          Далее → Правки
-        </button>
-      </div>
-    </section>
-
-    <!-- Step 5: Edits (болталка-заглушка) -->
-    <section id="step5" class="mt-8 bg-white rounded-xl shadow p-6 hidden-el">
-      <h2 class="text-2xl font-bold mb-2">Правки</h2>
-      <p class="text-gray-600">Напишите, что бы вы хотели изменить — мы перегенерируем вариант.</p>
-
-      <div class="grid gap-4 grid-cols-1 lg:grid-cols-2">
-        <img id="resultCopy" class="rounded border bg-white max-h-[360px] object-contain" alt="" />
-        <div class="flex flex-col">
-          <textarea id="edits" rows="5" class="w-full rounded-lg border p-3"
-            placeholder="Например: сделать стены чуть светлее, заменить ковер на однотонный, добавить теплый торшер…"></textarea>
-          <div class="mt-4">
-            <button id="btnRegen" class="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700">
-              Перегенерировать с правками
-            </button>
-          </div>
-          <div id="editState" class="text-sm text-gray-600 mt-3 hidden-el">
-            <span class="animate-pulse">Делаем новую версию…</span>
+        <div id="chat-container" class="border rounded-lg h-64 overflow-y-auto p-4 mb-4 bg-gray-50">
+          <div class="mb-3">
+            <div class="bg-blue-100 rounded-lg p-3 inline-block">
+              <strong>ИИ:</strong> Дизайн готов! Что хотели бы изменить?
+            </div>
           </div>
         </div>
-      </div>
 
-      <div id="alert2" class="mt-4 hidden-el p-3 rounded bg-red-50 text-red-800 text-sm"></div>
+        <div class="flex space-x-2">
+          <input id="chat-input" type="text" class="flex-1 px-4 py-2 border rounded-lg" placeholder="Напишите, что хотите изменить…">
+          <button id="send-message" class="bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-600">Отправить</button>
+        </div>
 
-      <div class="mt-6 flex justify-end">
-        <button id="toStep6" class="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700">
-          Далее → План ремонта
-        </button>
-      </div>
-    </section>
-
-    <!-- Step 6: Plan -->
-    <section id="step6" class="mt-8 bg-white rounded-xl shadow p-6 hidden-el">
-      <h2 class="text-2xl font-bold mb-2">План ремонта</h2>
-      <p class="text-gray-600 mb-4">Список задач на основе последней версии дизайна (черновик).</p>
-
-      <ol class="list-decimal pl-6 space-y-2 text-sm">
-        <li>Подбор краски / отделки стен.</li>
-        <li>Смена освещения (основной свет + торшер/бра).</li>
-        <li>Обновление текстиля: шторы, ковер, подушки.</li>
-        <li>Рассадка мебели с учетом проходов и света.</li>
-        <li>Декор: растения, постеры, мелочи.</li>
-      </ol>
-
-      <div class="mt-6 flex justify-between">
-        <button class="px-4 py-2 rounded-lg border" data-back="5">← Назад</button>
-        <a href="/" class="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700">Начать заново</a>
+        <div class="flex space-x-4 mt-6">
+          <button id="regenerate-design" class="bg-yellow-500 text-white px-6 py-3 rounded-lg hover:bg-yellow-600">🔄 Перегенерировать</button>
+          <button id="approve-design" class="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600">✅ Утвердить дизайн</button>
+        </div>
       </div>
     </section>
-  </main>
+
+    <!-- Step 6: plan -->
+    <section id="plan-section" class="hidden bg-white rounded-xl shadow-lg p-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">План ремонта и список покупок</h2>
+      <p class="text-gray-600">Здесь будет смета, этапы работ и список материалов — добавим после утверждения дизайна.</p>
+    </section>
+  </div>
 
   <script>
-    // --- state ---
+    // ---------- helpers ----------
+    const $ = (s, root = document) => root.querySelector(s);
+    const show = el => el.classList.remove('hidden');
+    const hide = el => el.classList.add('hidden');
+
+    const chips = ['step1','step2','step3','step4','step5','step6'].map(id => $('#'+id+'Chip'));
+
+    function setStep(n){
+      const sections = ['upload','params','wishes','generation','review','plan'].map(id => $('#'+id+'-section'));
+      sections.forEach((el,i)=> i===n-1 ? show(el) : hide(el));
+      chips.forEach((el,i)=> el.className = (i===n-1)
+        ? 'step-active px-4 py-2 rounded-full text-sm font-medium'
+        : 'step-inactive px-4 py-2 rounded-full text-sm font-medium');
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    // ---------- state ----------
     let uploadedFile = null;
+    let lastPrompt = '';
 
-    // --- helpers ---
-    const qs  = (s,root=document)=>root.querySelector(s);
-    const qsa = (s,root=document)=>[...root.querySelectorAll(s)];
-    const show = el => el.classList.remove('hidden-el');
-    const hide = el => el.classList.add('hidden-el');
+    // ---------- step 1 ----------
+    const fileInput = $('#fileInput');
+    const uploadArea = $('#upload-area');
 
-    const setStepActive = (n) => {
-      // progress bar
-      const pct = Math.max(1, Math.min(6,n)) / 6 * 100;
-      qs('#progress').style.width = pct + '%';
-
-      // header dots
-      qsa('#steps > div').forEach((wrap, idx)=>{
-        const dot = qs('.step-dot', wrap);
-        const label = wrap.lastElementChild;
-        if(idx < n) {
-          wrap.classList.remove('opacity-50');
-          dot.classList.remove('bg-gray-200','text-gray-600');
-          dot.classList.add('bg-purple-600','text-white');
-          label.classList.add('font-medium');
-        } else {
-          wrap.classList.add('opacity-50');
-          dot.classList.add('bg-gray-200','text-gray-600');
-          dot.classList.remove('bg-purple-600','text-white');
-        }
-      });
-
-      // sections
-      for(let i=1;i<=6;i++){
-        const sec = qs('#step'+i);
-        if(i===n) show(sec); else hide(sec);
+    uploadArea.addEventListener('click', ()=> fileInput.click());
+    uploadArea.addEventListener('dragover', e=>{e.preventDefault(); uploadArea.classList.add('bg-blue-50')});
+    uploadArea.addEventListener('dragleave', ()=> uploadArea.classList.remove('bg-blue-50'));
+    uploadArea.addEventListener('drop', e=>{
+      e.preventDefault(); uploadArea.classList.remove('bg-blue-50');
+      if(e.dataTransfer.files && e.dataTransfer.files[0]) {
+        fileInput.files = e.dataTransfer.files;
+        handleFileChange();
       }
-    };
+    });
 
-    const enableButton = (btn, on=true) => {
-      btn.disabled = !on;
-      if(on){
-        btn.classList.remove('bg-gray-300','text-gray-600','cursor-not-allowed');
-        btn.classList.add('bg-purple-600','text-white','hover:bg-purple-700');
-      } else {
-        btn.classList.add('bg-gray-300','text-gray-600','cursor-not-allowed');
-        btn.classList.remove('bg-purple-600','text-white','hover:bg-purple-700');
-      }
-    };
+    fileInput.addEventListener('change', handleFileChange);
 
-    // --- elements ---
-    const pickFile = qs('#pickFile');
-    const fileInput = qs('#file');
-    const fileName  = qs('#fileName');
-    const preview   = qs('#preview');
-    const sourceSmall = qs('#sourceSmall');
-
-    const toStep2 = qs('#toStep2');
-    const toStep3 = qs('#toStep3');
-    const toStep4 = qs('#toStep4');
-    const toStep5 = qs('#toStep5');
-    const toStep6 = qs('#toStep6');
-
-    const wishes   = qs('#wishes');
-    const btnGen   = qs('#btnGen');
-    const btnRegen = qs('#btnRegen');
-    const genState = qs('#genState');
-    const editState= qs('#editState');
-    const alert1   = qs('#alert');
-    const alert2   = qs('#alert2');
-
-    const resultImg = qs('#result');
-    const resultPh  = qs('#resultPh');
-    const resultCopy= qs('#resultCopy');
-
-    // --- step 1: pick file ---
-    pickFile.addEventListener('click', ()=> fileInput.click());
-    fileInput.addEventListener('change', ()=>{
+    function handleFileChange(){
       const f = fileInput.files?.[0];
-      if(!f){ return; }
-      uploadedFile = f;
-      fileName.textContent = f.name;
-
-      const url = URL.createObjectURL(f);
-      preview.src = url;
-      preview.onload = ()=> URL.revokeObjectURL(url);
-      show(preview);
-
-      enableButton(toStep2,true);
-    });
-
-    // go to step 2
-    toStep2.addEventListener('click', ()=>{
-      setStepActive(2);
-    });
-
-    // back buttons
-    qsa('[data-back]').forEach(b=>{
-      b.addEventListener('click', e=>{
-        const backTo = Number(e.currentTarget.getAttribute('data-back'));
-        setStepActive(backTo);
-      });
-    });
-
-    toStep3.addEventListener('click', ()=> setStepActive(3));
-    toStep4.addEventListener('click', ()=>{
-      // перенесём превью в блок "Исходное фото"
-      if(uploadedFile){
-        const url = URL.createObjectURL(uploadedFile);
-        sourceSmall.src = url;
-        sourceSmall.onload = ()=> URL.revokeObjectURL(url);
-      }
-      setStepActive(4);
-    });
-
-    // --- send form to /api/redesign ---
-    const sendToApi = async (extraPrompt="")=>{
-      const fd = new FormData();
-      fd.append('image', uploadedFile, uploadedFile?.name || 'photo.jpg');
-
-      // Собираем стилевое радио, пожелания и правки
-      const picked = qs('input[name="style"]:checked');
-      const style = picked ? picked.value : '';
-      const txt = [ style, wishes.value || '', extraPrompt || '' ]
-        .filter(Boolean)
-        .join('. ')
-        .trim();
-
-      fd.append('prompt', txt || 'Сделай современную, светлую и уютную комнату, аккуратные цвета, чистая композиция.');
-
-      const res = await fetch('/api/redesign', { method:'POST', body: fd });
-      let payloadText = null;
-      try{ payloadText = await res.text(); }catch(_){}
-      if(!res.ok){
-        const msg = payloadText || `Ошибка ${res.status}`;
-        throw new Error(msg);
-      }
-      // ожидаем ответ с base64 (data:image/…)
-      const data = JSON.parse(payloadText);
-      if(!data || !data.ok) throw new Error(data?.error || 'Неизвестная ошибка');
-      return data.url; // предполагаем, что сервер вернёт url data:image/png;base64,…
-    };
-
-    const showResult = (url)=>{
-      resultImg.src = url;
-      resultCopy.src = url;
-      hide(resultPh);
-      show(resultImg);
-      enableButton(toStep5,true);
-    };
-
-    // generate
-    btnGen.addEventListener('click', async ()=>{
-      // guards
-      if(!uploadedFile){
-        alert('Сначала загрузите фото на шаге 1.');
+      if(!f) return;
+      if(f.size > 10*1024*1024){
+        alert('Файл больше 10 МБ');
         return;
       }
-      hide(alert1); show(genState);
-      enableButton(btnGen,false);
+      uploadedFile = f;
+
+      const reader = new FileReader();
+      reader.onload = e=>{
+        $('#preview-image').src = e.target.result;
+        show($('#preview-content'));
+        hide($('#upload-content'));
+
+        $('#final-origin').src = e.target.result;
+        show($('#next-to-params'));
+      };
+      reader.readAsDataURL(f);
+    }
+
+    $('#next-to-params').addEventListener('click', ()=> setStep(2));
+    $('#next-to-wishes').addEventListener('click', ()=> setStep(3));
+
+    // ---------- step 3 → 4 (call API) ----------
+    $('#start-generation').addEventListener('click', async ()=>{
+      if(!uploadedFile){
+        alert('Сначала загрузите фото.');
+        return;
+      }
+
+      // формируем подсказку
+      const roomType = $('#room-type').value || 'комната';
+      const style = $('#style').value || 'современный стиль';
+      const wishes = $('#additional-wishes').value || '';
+      lastPrompt = `Сделай редизайн: ${roomType}, стиль: ${style}. ${wishes}`.trim();
+
+      // UI прогресс
+      setStep(4);
+      updateProgress(10, 'Загружаем фото…');
 
       try{
-        const url = await sendToApi();
-        showResult(url);
-      }catch(err){
-        // сообщения по частым случаям
-        let m = String(err.message || err);
-        if(m.includes('403') || m.toLowerCase().includes('policy') || m.toLowerCase().includes('verify')){
-          m = 'Доступ к модели ограничен (403). Проверьте, что ваш OpenAI-аккаунт верифицирован и ключ имеет доступ к нужной модели.';
+        const fd = new FormData();
+        fd.append('image', uploadedFile, uploadedFile.name);   // <-- важно: Blob + filename
+        fd.append('prompt', lastPrompt);
+
+        updateProgress(25, 'Отправляем на сервер…');
+
+        const res = await fetch('/api/redesign', { method:'POST', body: fd });
+
+        if(!res.ok){
+          const t = await res.text();
+          throw new Error(`API ошибка ${res.status}: ${t}`);
         }
-        alert1.textContent = m;
-        show(alert1);
-      }finally{
-        hide(genState);
-        enableButton(btnGen,true);
-      }
-    });
 
-    // go step 5 if ok
-    toStep5.addEventListener('click', ()=> setStepActive(5));
+        updateProgress(65, 'Генерация дизайна…');
 
-    // re-generate with edits
-    btnRegen.addEventListener('click', async ()=>{
-      const extra = qs('#edits').value.trim();
-      hide(alert2); show(editState);
-      enableButton(btnRegen,false);
-      try{
-        const url = await sendToApi(extra);
-        showResult(url);
-        // обновим копию
-        resultCopy.src = url;
+        const data = await res.json();
+
+        // поддержим и image_base64, и image_url
+        let imgSrc = '';
+        if(data.image_base64){
+          imgSrc = `data:image/png;base64,${data.image_base64}`;
+        } else if(data.image_url){
+          imgSrc = data.image_url;
+        } else {
+          throw new Error('Некорректный ответ API (нет image_base64/image_url)');
+        }
+
+        updateProgress(95, 'Готовим результат…');
+
+        const resultImg = $('#result-image');
+        resultImg.src = imgSrc;
+        resultImg.onload = ()=>{
+          hide($('#result-placeholder'));
+          show(resultImg);
+        };
+
+        updateProgress(100, 'Готово!');
+        setStep(5);
+
       }catch(err){
-        let m = String(err.message || err);
-        if(m.includes('403')) m = 'Доступ к модели ограничен (403). Проверьте верификацию и права ключа.';
-        alert2.textContent = m;
-        show(alert2);
-      }finally{
-        hide(editState);
-        enableButton(btnRegen,true);
+        console.error(err);
+        alert('Не удалось сгенерировать дизайн: ' + err.message);
+        setStep(3); // вернемся на шаг пожеланий
       }
     });
 
-    // step 6 from 5
-    toStep6.addEventListener('click', ()=> setStepActive(6));
+    function updateProgress(pct, text){
+      $('#progress-bar').style.width = pct + '%';
+      $('#progress-text').textContent = text;
+    }
 
-    // старт
-    setStepActive(1);
+    // ---------- чат-заглушка ----------
+    function addMessage(who, text){
+      const c = $('#chat-container');
+      const wrap = document.createElement('div');
+      wrap.className = 'mb-3';
+      const b = document.createElement('div');
+      b.className = (who==='ai' ? 'bg-blue-100' : 'bg-gray-100') + ' rounded-lg p-3 inline-block';
+      b.innerHTML = `<strong>${who==='ai'?'ИИ':'Вы'}:</strong> ${text}`;
+      wrap.appendChild(b);
+      c.appendChild(wrap);
+      c.scrollTop = c.scrollHeight;
+    }
+
+    $('#send-message').addEventListener('click', ()=>{
+      const val = $('#chat-input').value.trim();
+      if(!val) return;
+      addMessage('user', val);
+      $('#chat-input').value = '';
+      setTimeout(()=> addMessage('ai','Принято! Учитываю в следующей версии.'), 500);
+    });
+
+    $('#regenerate-design').addEventListener('click', ()=>{
+      addMessage('ai','Перегенерирую с учётом правок…');
+      // тут можно повторно дергать /api/redesign с lastPrompt + правки
+    });
+
+    $('#approve-design').addEventListener('click', ()=>{
+      setStep(6);
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+
+    // init
+    setStep(1);
   </script>
 </body>
 </html>
