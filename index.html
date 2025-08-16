@@ -1,11 +1,103 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
-  <head>
-    <meta charset="utf-8" />
-    <title>Smoke test</title>
-  </head>
-  <body>
-    <h1>It works</h1>
-    <p><a href="/api/redesign">Открыть /api/redesign</a></p>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RemontAI — Генератор дизайна</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+  <!-- Шапка -->
+  <header class="bg-white shadow">
+    <div class="max-w-6xl mx-auto py-4 px-6 flex justify-between items-center">
+      <h1 class="text-xl font-bold text-blue-600">RemontAI</h1>
+      <nav class="space-x-4">
+        <a href="#" class="text-gray-600 hover:text-blue-600">Главная</a>
+        <a href="#" class="text-gray-600 hover:text-blue-600">О сервисе</a>
+        <a href="#" class="text-gray-600 hover:text-blue-600">Контакты</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Контент -->
+  <main class="max-w-6xl mx-auto px-6 py-10">
+    <h2 class="text-3xl font-bold text-center mb-8">Создайте новый дизайн комнаты ✨</h2>
+
+    <div class="max-w-xl mx-auto p-6 bg-white rounded-xl shadow">
+      <h3 class="text-2xl font-bold mb-4">Загрузите фото комнаты</h3>
+
+      <!-- Форма -->
+      <form id="redesign-form" class="space-y-4">
+        <input type="file" id="image-input" name="image" accept="image/*" 
+               class="w-full border p-2 rounded" required />
+
+        <textarea id="prompt-input" name="prompt" 
+                  placeholder="Опишите пожелания к дизайну (например: «светлый скандинавский стиль»)" 
+                  class="w-full border p-2 rounded"></textarea>
+
+        <button type="submit" 
+                class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700">
+          Сгенерировать дизайн
+        </button>
+      </form>
+
+      <!-- Результат -->
+      <div id="result-block" class="mt-6 text-center">
+        <span id="result-placeholder" class="text-gray-600">Здесь появится результат ✨</span>
+        <img id="result-image" class="mt-4 mx-auto max-h-96 rounded hidden" alt="Сгенерированный дизайн"/>
+      </div>
+    </div>
+  </main>
+
+  <!-- Подвал -->
+  <footer class="bg-white border-t mt-10">
+    <div class="max-w-6xl mx-auto py-4 px-6 text-center text-gray-500 text-sm">
+      © 2025 RemontAI. Все права защищены.
+    </div>
+  </footer>
+
+  <!-- Скрипт -->
+  <script>
+    document.getElementById('redesign-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const fileInput = document.getElementById('image-input');
+      const promptInput = document.getElementById('prompt-input');
+      const resultImg = document.getElementById('result-image');
+      const placeholder = document.getElementById('result-placeholder');
+
+      if (!fileInput.files.length) {
+        alert("Пожалуйста, выберите изображение.");
+        return;
+      }
+
+      placeholder.textContent = "⏳ Генерация дизайна...";
+      resultImg.classList.add("hidden");
+
+      const formData = new FormData();
+      formData.append("image", fileInput.files[0]); // поле обязательно называется "image"
+      formData.append("prompt", promptInput.value);
+
+      try {
+        const resp = await fetch("/api/redesign", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await resp.json();
+        if (data.ok && data.image) {
+          resultImg.src = data.image;
+          resultImg.classList.remove("hidden");
+          placeholder.textContent = "";
+        } else {
+          placeholder.textContent = "Ошибка: " + (data.error || "неизвестно");
+        }
+      } catch (err) {
+        console.error(err);
+        placeholder.textContent = "Ошибка запроса: " + err.message;
+      }
+    });
+  </script>
+</body>
 </html>
