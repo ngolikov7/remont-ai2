@@ -1,39 +1,45 @@
 // api/redesign.js
-// Serverless-функция Vercel (Node.js), CommonJS.
-// Принимает multipart/form-data: fields:  image (file), prompt (string).
-// Делает запрос в OpenAI (gpt-image-1) и отдаёт dataURL с картинкой.
+// Serverless-функция Vercel (CommonJS).
+// Принимает multipart/form-data: fields: prompt, files: image
+// Возвращает { ok:true, image_base64: "<base64>" } или { ok:false, error:"..." }
 
 const Busboy = require('busboy');
-const FormData = require('form-data');
+const OpenAI = require('openai');
+const { toFile } = require('openai/uploads');
 
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+// --- утилита: парсинг multipart в буфер ---
 function parseMultipart(req) {
   return new Promise((resolve, reject) => {
     try {
       const bb = Busboy({ headers: req.headers });
-      let prompt = '';
-      /** @type {{buffer: Buffer, filename: string, mime: string} | null} */
-      let image = null;
+      const fields = {};
+      let fileBuffer = null;
+      let fileInfo = { filename: null, mime: null };
+
+      bb.on('field', (name, val) => {
+        fields[name] = val;
+      });
 
       bb.on('file', (name, file, info) => {
-        const { filename, mimeType } = info;
+        if (name !== 'image') {
+          // просто проглотим посторонние файлы
+          file.resume();
+          return;
+        }
         const chunks = [];
-        file.on('data', (c) => chunks.push(c));
+        fileInfo = { filename: info.filename || 'image.png', mime: info.mimeType || 'image/png' };
+        file.on('data', (d) => chunks.push(d));
         file.on('end', () => {
-          image = {
-            buffer: Buffer.concat(chunks),
-            filename: filename || 'image.png',
-            mime: mimeType || 'image/png',
-          };
+          fileBuffer = Buffer.concat(chunks);
         });
       });
 
-      bb.on('field', (name, val) => {
-        if (name === 'prompt') prompt = (val || '').toString();
-      });
-
       bb.on('error', reject);
-      bb.on('finish', () => resolve({ prompt, image }));
-
+      bb.on('finish', () => resolve({ fields, fileBuffer, fileInfo }));
       req.pipe(bb);
     } catch (e) {
       reject(e);
@@ -41,78 +47,59 @@ function parseMultipart(req) {
   });
 }
 
-async function callOpenAI({ prompt, image }) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('OPENAI_API_KEY не задан в переменных окружения');
-  }
-
-  const form = new FormData();
-  form.append('model', 'gpt-image-1');
-  form.append('prompt', prompt || '');
-  form.append('size', '1024x1024');
-  // OpenAI принимает image[] — но одиночный файл тоже работает, указываем именно таким полем.
-  form.append('image[]', image.buffer, {
-    filename: image.filename,
-    contentType: image.mime,
-    knownLength: image.buffer.length,
-  });
-
-  const res = await fetch('https://api.openai.com/v1/images/edits', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      ...form.getHeaders(),
-    },
-    body: form,
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`OpenAI ${res.status}: ${text}`);
-  }
-
-  const json = await res.json();
-  const b64 = json?.data?.[0]?.b64_json;
-  if (!b64) {
-    throw new Error('OpenAI не вернул изображение');
-  }
-  return `data:image/png;base64,${b64}`;
-}
-
+// --- сам хэндлер ---
 module.exports = async (req, res) => {
-  // CORS (на будущее, если понадобится дергать с другого домена)
+  // простенький CORS (если нужно дергать из других доменов)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  if (req.method === 'OPTIONS') {
-    res.statusCode = 204;
-    res.end();
-    return;
-  }
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(204).end();
 
   if (req.method !== 'POST') {
-    res.statusCode = 405;
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.end(JSON.stringify({ ok: false, error: 'Method Not Allowed' }));
-    return;
+    return res.status(405).json({ ok: false, error: 'Method Not Allowed' });
+  }
+
+  if (!process.env.OPENAI_API_KEY) {
+    return res.status(500).json({ ok: false, error: 'OPENAI_API_KEY is not set' });
   }
 
   try {
-    const { prompt, image } = await parseMultipart(req);
-    if (!image || !image.buffer?.length) {
-      throw new Error('Файл изображения не получен (поле "image").');
-    }
-    const dataUrl = await callOpenAI({ prompt, image });
+    // 1) разбираем multipart
+    const { fields, fileBuffer, fileInfo } = await parseMultipart(req);
 
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.end(JSON.stringify({ ok: true, image: dataUrl }));
+    if (!fileBuffer) {
+      return res.status(400).json({ ok: false, error: 'No image file provided (field name must be "image")' });
+    }
+
+    const prompt = (fields.prompt || 'Redesign this room in a modern style').toString().slice(0, 2000);
+
+    // 2) формируем file-like для SDK
+    const fileLike = await toFile(fileBuffer, fileInfo.filename || 'image.png', { type: fileInfo.mime || 'image/png' });
+
+    // 3) запрос в OpenAI: image-to-image через edits
+    //    (если у тебя обычная генерация по тексту — используй client.images.generate)
+    const oi = await client.images.edits({
+      model: 'gpt-image-1',
+      image: [fileLike],          // исходное изображение
+      prompt,                     // подсказка
+      size: '1024x1024',          // можно 512x512 / 1024x1024 / 2048x2048
+      // background: 'transparent' // если нужно
+    });
+
+    if (!oi || !oi.data || !oi.data[0] || !oi.data[0].b64_json) {
+      return res.status(502).json({ ok: false, error: 'Invalid response from OpenAI (no b64_json)' });
+    }
+
+    const b64 = oi.data[0].b64_json;
+
+    return res.status(200).json({
+      ok: true,
+      image_base64: b64,
+      model: 'gpt-image-1',
+    });
   } catch (err) {
-    console.error('[api/redesign] error:', err);
-    res.statusCode = 500;
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.end(JSON.stringify({ ok: false, error: String(err.message || err) }));
+    // прокинем полезные детали наружу
+    const details = err?.response?.data || err?.message || String(err);
+    return res.status(500).json({ ok: false, error: 'OpenAI error', details });
   }
 };
