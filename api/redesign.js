@@ -35,7 +35,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    const imgFile = files?.image;
+    const imgFile = Array.isArray(files?.image) ? files.image[0] : files.image;
     if (!imgFile?.filepath) {
       res.status(400).json({ error: "Missing image" });
       return;
