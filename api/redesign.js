@@ -9,6 +9,7 @@ index 6fed52b851407a884f611defb906dfde40cfd04b..2a1904646babed601ca0d6f04a7b6d41
  
  import { IncomingForm } from "formidable";
  import fs from "fs";
+
 import OpenAI, { toFile } from "openai";
  
  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -40,15 +41,16 @@ import OpenAI, { toFile } from "openai";
        res.status(400).json({ error: "Missing prompt" });
        return;
      }
- 
     const imgFile = Array.isArray(files?.image) ? files.image[0] : files.image;
      if (!imgFile?.filepath) {
        res.status(400).json({ error: "Missing image" });
        return;
      }
+ 
     const gen = await client.images.edit({
        model: "gpt-image-1",
        prompt,
+
       image: await toFile(
         fs.createReadStream(imgFile.filepath),
         imgFile.originalFilename || "upload.png",
