@@ -49,10 +49,16 @@ export default async function handler(req, res) {
       return;
     }
 
+    const imageFile = await OpenAI.toFile(
+      fs.createReadStream(imgFile.filepath),
+      imgFile.originalFilename || "image.png",
+      { type: imgFile.mimetype }
+    );
+
     const gen = await client.images.edit({
       model: "gpt-image-1",
       prompt,
-      image: fs.createReadStream(imgFile.filepath),
+      image: imageFile,
       size: "1024x1024",
     });
 
