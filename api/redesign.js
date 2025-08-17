@@ -1,80 +1,68 @@
-// api/redesign.js
-// Node.js serverless-функция на Vercel
+// Важно для Vercel: отключаем встроенный парсер, чтобы читать FormData файлы
+export const config = { api: { bodyParser: false } };
 
-const { IncomingForm } = require("formidable");
-const fs = require("fs");
-const OpenAI = require("openai");
+import OpenAI from "openai";
+import formidable from "formidable";
+import fs from "fs";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// говорим Vercel не парсить тело (нам нужно multipart)
-module.exports.config = {
-  api: { bodyParser: false },
-};
+function parseForm(req) {
+  return new Promise((resolve, reject) => {
+    const form = formidable({ multiples: false, keepExtensions: true });
+    form.parse(req, (err, fields, files) => {
+      if (err) return reject(err);
+      resolve({ fields, files });
+    });
+  });
+}
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" });
     return;
   }
 
   try {
-    const { fields, fileBuffer, mime } = await parseMultipart(req);
+    const { fields, files } = await parseForm(req);
+    const prompt = (fields.prompt?.toString() || "Сделай редизайн комнаты, современный стиль").trim();
+    const imageFile = files.image;
 
-    // Собираем промпт
-    const style = (fields.style || "modern").toString();
-    const extra = (fields.wishes || "").toString();
-    const prompt = `Redesign this room photo to "${style}" style. Keep layout and geometry. ${extra}`.trim();
+    if (!imageFile) {
+      res.status(400).json({ error: "image file is required" });
+      return;
+    }
+    // читаем файл в буфер и кодируем в base64
+    const buffer = fs.readFileSync(imageFile.filepath);
 
-    // ⚠️ Для простоты MVP не редактируем исходную картинку,
-    // а просто генерируем новую сцену (можно позже заменить на image edit).
-    const img = await client.images.generate({
+    // Генерация с учетом исходного фото (gpt-image-1 поддерживает image+prompt)
+    const result = await client.images.generate({
       model: "gpt-image-1",
       prompt,
+      // передаём исходное изображение
+      image: [{ name: imageFile.originalFilename || "input.png", data: buffer }],
       size: "1024x1024",
-      // если хочешь использовать загруженную картинку — будем переходить на edits
-      // и отправлять её как image[]/mask[], но это уже другой маршрут.
+      // хотим base64 в ответе
+      response_format: "b64_json"
     });
 
-    const b64 = img.data[0].b64_json;
-    const dataUrl = `data:image/png;base64,${b64}`;
-
-    res.status(200).json({ ok: true, imageUrl: dataUrl });
-  } catch (err) {
-    console.error("API /api/redesign error:", err);
-    res.status(500).json({ ok: false, error: err.message || "Server error" });
-  }
-};
-
-// ---------- helpers ----------
-
-function parseMultipart(req) {
-  return new Promise((resolve, reject) => {
-    const form = new IncomingForm({
-      multiples: false,
-      keepExtensions: true,
-      maxFileSize: 15 * 1024 * 1024, // 15MB
-    });
-
-    form.parse(req, (err, fields, files) => {
-      if (err) return reject(err);
-
-      // файл может лежать в files.image
-      const file = files?.image;
-      let fileBuffer = null;
-      let mime = null;
-
-      if (file && !Array.isArray(file)) {
-        try {
-          fileBuffer = fs.readFileSync(file.filepath);
-          mime = file.mimetype || "image/jpeg";
-        } catch (e) {
-          // необязательный файл — не падаем
-          fileBuffer = null;
-        }
+    const b64 = result?.data?.[0]?.b64_json;
+    if (!b64) {
+      // на всякий случай пробуем URL, если SDK вернул ссылку
+      const url = result?.data?.[0]?.url;
+      if (url) {
+        res.status(200).json({ image_url: url });
+        return;
       }
+      throw new Error("OpenAI ответ без b64_json/url");
+    }
 
-      resolve({ fields, fileBuffer, mime });
-    });
-  });
+    // Возвращаем то, что ждёт фронтенд
+    res.status(200).json({ image_base64: b64 });
+  } catch (err) {
+    console.error("redesign error:", err);
+    res.status(500).send(
+      typeof err?.message === "string" ? err.message : "Internal Server Error"
+    );
+  }
 }
