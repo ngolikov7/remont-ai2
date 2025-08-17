@@ -41,7 +41,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    const gen = await client.images.generate({
+    const gen = await client.images.edit({
       model: "gpt-image-1",
       prompt,
       image: fs.createReadStream(imgFile.filepath),
