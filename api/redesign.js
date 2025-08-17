@@ -9,7 +9,11 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 function parseMultipart(req) {
   return new Promise((resolve, reject) => {
-    const form = new IncomingForm({ multiples: false, keepExtensions: true, maxFileSize: 15 * 1024 * 1024 });
+    const form = new IncomingForm({
+      multiples: false,
+      keepExtensions: true,
+      maxFileSize: 15 * 1024 * 1024,
+    });
     form.parse(req, (err, fields, files) => {
       if (err) return reject(err);
       resolve({ fields, files });
@@ -24,16 +28,27 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { fields } = await parseMultipart(req);
-    const style = (fields?.style || "modern").toString();
-    const wishes = (fields?.wishes || "").toString();
-    const prompt = `Interior redesign of a room in "${style}" style. Keep it realistic. ${wishes}`.trim();
+    const { fields, files } = await parseMultipart(req);
+    const prompt = (fields?.prompt || "").toString().trim();
+    if (!prompt) {
+      res.status(400).json({ error: "Missing prompt" });
+      return;
+    }
+
+    const imgFile = files?.image;
+    if (!imgFile?.filepath) {
+      res.status(400).json({ error: "Missing image" });
+      return;
+    }
 
     const gen = await client.images.generate({
       model: "gpt-image-1",
       prompt,
+      image: fs.createReadStream(imgFile.filepath),
       size: "1024x1024",
     });
+
+    fs.unlink(imgFile.filepath, () => {});
 
     const b64 = gen?.data?.[0]?.b64_json;
     if (b64) return res.status(200).json({ image_base64: b64 });
@@ -47,4 +62,3 @@ export default async function handler(req, res) {
     res.status(500).json({ error: e?.message || "Internal Server Error" });
   }
 }
- 
