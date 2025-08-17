@@ -253,7 +253,22 @@
       const roomType = $('#room-type').value || 'комната';
       const style = $('#style').value || 'современный стиль';
       const wishes = $('#additional-wishes').value || '';
-      lastPrompt = `Сделай редизайн: ${roomType}, стиль: ${style}. ${wishes}`.trim();
+      const length = $('#room-length').value;
+      const width = $('#room-width').value;
+      const height = $('#room-height').value;
+      let dims = '';
+      if (length || width || height) {
+        if (length && width && height) {
+          dims = ` Размеры: ${length}×${width}×${height} м.`;
+        } else {
+          const parts = [];
+          if (length) parts.push(`длина ${length} м`);
+          if (width) parts.push(`ширина ${width} м`);
+          if (height) parts.push(`высота ${height} м`);
+          dims = ` Размеры: ${parts.join(', ')}.`;
+        }
+      }
+      lastPrompt = `Сделай редизайн: ${roomType}, стиль: ${style}. ${wishes}${dims}`.trim();
 
       // UI прогресс
       setStep(4);
@@ -274,7 +289,6 @@
 
         updateProgress(65, 'Генерация дизайна…');
         const data = await res.json();
-        // поддержим и image_base64, и image_url (на всякий)
         let imgSrc = '';
         if(data.image_base64){
           imgSrc = `data:image/png;base64,${data.image_base64}`;
@@ -297,7 +311,7 @@
       }catch(err){
         console.error(err);
         alert('Не удалось сгенерировать дизайн: ' + err.message);
-        setStep(3); // вернемся на шаг пожеланий
+        setStep(3);
       }
     });
 
@@ -306,7 +320,7 @@
       $('#progress-text').textContent = text;
     }
 
-    // ---------- чат-заглушка (оставляем как было) ----------
+    // ---------- чат-заглушка ----------
     function addMessage(who, text){
       const c = $('#chat-container');
       const wrap = document.createElement('div');
@@ -328,7 +342,6 @@
 
     $('#regenerate-design').addEventListener('click', ()=>{
       addMessage('ai','Перегенерирую с учётом правок…');
-      // тут можно повторно дергать /api/redesign с lastPrompt + правки
     });
 
     $('#approve-design').addEventListener('click', ()=>{
@@ -336,9 +349,7 @@
       window.scrollTo({top:0,behavior:'smooth'});
     });
 
-    // init
     setStep(1);
   </script>
 </body>
 </html>
- 
