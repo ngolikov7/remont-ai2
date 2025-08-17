@@ -1,96 +1,80 @@
 // api/redesign.js
-import OpenAI from "openai";
-import Busboy from "busboy";
-import fs from "fs";
-import fsp from "fs/promises";
-import path from "path";
-import os from "os";
-import { toFile } from "openai/uploads"; // <<< ВАЖНО
+// Node.js serverless-функция на Vercel
 
-export const config = { api: { bodyParser: false } };
+const { IncomingForm } = require("formidable");
+const fs = require("fs");
+const OpenAI = require("openai");
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-function withTimeout(promise, ms, label = "operation") {
-  let id;
-  const t = new Promise((_, rej) =>
-    (id = setTimeout(() => rej(new Error(`${label} timed out after ${ms}ms`)), ms))
-  );
-  return Promise.race([promise, t]).finally(() => clearTimeout(id));
-}
+// говорим Vercel не парсить тело (нам нужно multipart)
+module.exports.config = {
+  api: { bodyParser: false },
+};
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ ok: false, error: "Only POST allowed" });
+    res.status(405).json({ error: "Method not allowed" });
+    return;
   }
-
-  let uploadedPath = "";
-  let uploadedName = "";
-  let promptText = "";
 
   try {
-    // ---- 1) парсим multipart
-    await new Promise((resolve, reject) => {
-      const bb = Busboy({
-        headers: req.headers,
-        limits: { files: 1, fields: 10, fileSize: 10 * 1024 * 1024 }
-      });
+    const { fields, fileBuffer, mime } = await parseMultipart(req);
 
-      bb.on("file", (field, file, info) => {
-        if (field !== "image") {
-          file.resume();
-          return;
-        }
-        const { filename } = info;
-        // если имя не пришло — дадим безопасное с расширением .png
-        uploadedName = filename && filename.includes(".") ? filename : `upload-${Date.now()}.png`;
-        uploadedPath = path.join(os.tmpdir(), uploadedName);
-        file.pipe(fs.createWriteStream(uploadedPath));
-      });
+    // Собираем промпт
+    const style = (fields.style || "modern").toString();
+    const extra = (fields.wishes || "").toString();
+    const prompt = `Redesign this room photo to "${style}" style. Keep layout and geometry. ${extra}`.trim();
 
-      bb.on("field", (name, val) => {
-        if (name === "prompt") promptText = val;
-      });
-
-      bb.once("error", reject);
-      bb.once("finish", resolve);
-      req.pipe(bb);
+    // ⚠️ Для простоты MVP не редактируем исходную картинку,
+    // а просто генерируем новую сцену (можно позже заменить на image edit).
+    const img = await client.images.generate({
+      model: "gpt-image-1",
+      prompt,
+      size: "1024x1024",
+      // если хочешь использовать загруженную картинку — будем переходить на edits
+      // и отправлять её как image[]/mask[], но это уже другой маршрут.
     });
 
-    if (!uploadedPath) {
-      return res.status(400).json({ ok: false, error: "Файл не получен" });
-    }
+    const b64 = img.data[0].b64_json;
+    const dataUrl = `data:image/png;base64,${b64}`;
 
-    // ---- 2) готовим корректный File для OpenAI (с типом и именем)
-    const openAiFile = await toFile(
-      fs.createReadStream(uploadedPath),
-      uploadedName // имя с расширением
-    );
-
-    const prompt = (promptText || "Сделай интерьер светлее и современнее").trim();
-
-    // ---- 3) вызов OpenAI с таймаутом
-    const result = await withTimeout(
-      client.images.edits({
-        model: "gpt-image-1",
-        image: openAiFile,
-        prompt,
-        size: "1024x1024"
-      }),
-      90_000,
-      "OpenAI images.edits"
-    );
-
-    const url = result?.data?.[0]?.url;
-    if (!url) throw new Error("Пустой ответ OpenAI");
-    return res.status(200).json({ ok: true, url });
+    res.status(200).json({ ok: true, imageUrl: dataUrl });
   } catch (err) {
-    return res.status(500).json({
-      ok: false,
-      error: "server_error",
-      details: String(err?.message || err)
-    });
-  } finally {
-    if (uploadedPath) fsp.unlink(uploadedPath).catch(() => {});
+    console.error("API /api/redesign error:", err);
+    res.status(500).json({ ok: false, error: err.message || "Server error" });
   }
+};
+
+// ---------- helpers ----------
+
+function parseMultipart(req) {
+  return new Promise((resolve, reject) => {
+    const form = new IncomingForm({
+      multiples: false,
+      keepExtensions: true,
+      maxFileSize: 15 * 1024 * 1024, // 15MB
+    });
+
+    form.parse(req, (err, fields, files) => {
+      if (err) return reject(err);
+
+      // файл может лежать в files.image
+      const file = files?.image;
+      let fileBuffer = null;
+      let mime = null;
+
+      if (file && !Array.isArray(file)) {
+        try {
+          fileBuffer = fs.readFileSync(file.filepath);
+          mime = file.mimetype || "image/jpeg";
+        } catch (e) {
+          // необязательный файл — не падаем
+          fileBuffer = null;
+        }
+      }
+
+      resolve({ fields, fileBuffer, mime });
+    });
+  });
 }
