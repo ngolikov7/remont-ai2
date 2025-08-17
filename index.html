@@ -56,7 +56,7 @@
           <p class="text-green-600 font-medium">✅ Фото загружено успешно</p>
         </div>
       </div>
-      <input id="fileInput" type="file" accept="image/*" class="hidden" />
+      <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" />
       <button id="next-to-params" class="hidden mt-6 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:from-purple-600 hover:to-blue-600 transition">
         Далее: Параметры комнаты →
       </button>
@@ -136,7 +136,7 @@
     <!-- Step 4: generation -->
     <section id="generation-section" class="hidden bg-white rounded-xl shadow-lg p-8">
       <div class="text-center">
-        <div class="ai-thinking text-6xl mb-4">🤖</div>
+        <div class="ai-thinking text-6л mb-4">🤖</div>
         <h2 class="text-2xl font-bold text-gray-900 mb-4">ИИ создает дизайн вашей комнаты</h2>
         <p id="progress-text" class="text-gray-600 mb-6">Инициализация…</p>
         <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
@@ -207,6 +207,7 @@
     }
 
     // ---------- state ----------
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
     let uploadedFile = null;
     let lastPrompt = '';
 
@@ -220,16 +221,21 @@
       e.preventDefault();
       uploadArea.classList.remove('bg-blue-50');
       if(e.dataTransfer.files && e.dataTransfer.files[0]) {
-        fileInput.files = e.dataTransfer.files;
-        handleFileChange();
+        handleFile(e.dataTransfer.files[0]);
       }
     });
-    fileInput.addEventListener('change', handleFileChange);
+    fileInput.addEventListener('change', ()=> handleFile(fileInput.files?.[0]));
 
-    function handleFileChange(){
-      const f = fileInput.files?.[0];
+    function handleFile(f){
       if(!f) return;
-      if(f.size > 10*1024*1024){ alert('Файл больше 10 МБ'); return; }
+      if(!allowedTypes.includes(f.type)){
+        alert('Поддерживаются только JPG, PNG или WEBP');
+        return;
+      }
+      if(f.size > 10*1024*1024){
+        alert('Файл больше 10 МБ');
+        return;
+      }
       uploadedFile = f;
       const reader = new FileReader();
       reader.onload = e=>{
