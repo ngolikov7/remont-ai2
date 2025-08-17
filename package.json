@@ -2,7 +2,6 @@
   "name": "remontai-site",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "dependencies": {
     "openai": "^4.54.0",
     "formidable": "^3.5.2"
