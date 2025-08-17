@@ -32,8 +32,8 @@
       <div id="step1Chip" class="step-active px-4 py-2 rounded-full text-sm font-medium">1 Загрузка фото</div>
       <div class="w-8 h-0.5 bg-gray-300"></div>
       <div id="step2Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">2 Параметры</div>
-      <div class="w-8 h-0.5 bg-gray-300"></div>
-      <div id="step3Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">3 Пожелания</div>
+      <div class="w-8 h-0.5 bg-gray-300"></div
+      ><div id="step3Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">3 Пожелания</div>
       <div class="w-8 h-0.5 bg-gray-300"></div>
       <div id="step4Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">4 Генерация</div>
       <div class="w-8 h-0.5 bg-gray-300"></div>
@@ -49,14 +49,14 @@
         <div id="upload-content">
           <div class="text-6xl mb-4">📷</div>
           <h3 class="text-xl font-semibold text-gray-700 mb-2">Перетащите фото сюда или нажмите для выбора</h3>
-          <p class="text-gray-500">Можно загружать любые изображения (до 10 МБ)</p>
+          <p class="text-gray-500">Поддерживаются JPG/PNG/WEBP (до 10 МБ)</p>
         </div>
         <div id="preview-content" class="hidden">
           <img id="preview-image" class="max-w-full max-h-64 mx-auto rounded-lg shadow-md mb-3" alt="Предпросмотр"/>
           <p class="text-green-600 font-medium">✅ Фото загружено успешно</p>
         </div>
       </div>
-      <input id="fileInput" type="file" accept="image/*" class="hidden" />
+      <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" />
       <button id="next-to-params" class="hidden mt-6 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:from-purple-600 hover:to-blue-600 transition">
         Далее: Параметры комнаты →
       </button>
@@ -207,8 +207,10 @@
     }
 
     // ---------- state ----------
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
     let uploadedFile = null;
     let lastPrompt = '';
+    let lastFeedback = '';
 
     // ---------- step 1 ----------
     const fileInput = $('#fileInput');
@@ -227,8 +229,8 @@
 
     function handleFile(f){
       if(!f) return;
-      if(!f.type || !f.type.startsWith('image/')){
-        alert('Можно загружать только изображения');
+      if(!allowedTypes.includes(f.type)){
+        alert('Поддерживаются только JPG, PNG или WEBP');
         return;
       }
       if(f.size > 10*1024*1024){
@@ -254,7 +256,6 @@
     $('#start-generation').addEventListener('click', async ()=>{
       if(!uploadedFile){ alert('Сначала загрузите фото.'); return; }
 
-      // формируем подсказку
       const roomType = $('#room-type').value || 'комната';
       const style = $('#style').value || 'современный стиль';
       const wishes = $('#additional-wishes').value || '';
@@ -275,7 +276,6 @@
       }
       lastPrompt = `Сделай редизайн: ${roomType}, стиль: ${style}. ${wishes}${dims}`.trim();
 
-      // UI прогресс
       setStep(4);
       updateProgress(10, 'Загружаем фото…');
 
@@ -325,7 +325,7 @@
       $('#progress-text').textContent = text;
     }
 
-    // ---------- чат-заглушка ----------
+    // ---------- чат и перегенерация ----------
     function addMessage(who, text){
       const c = $('#chat-container');
       const wrap = document.createElement('div');
@@ -337,17 +337,64 @@
       c.appendChild(wrap);
       c.scrollTop = c.scrollHeight;
     }
+
     $('#send-message').addEventListener('click', ()=>{
       const val = $('#chat-input').value.trim();
       if(!val) return;
+      lastFeedback = val;
       addMessage('user', val);
       $('#chat-input').value = '';
-      setTimeout(()=> addMessage('ai','Принято! Учитываю в следующей версии.'), 500);
+      setTimeout(()=> addMessage('ai','Принято! Нажмите «Перегенерировать».'),
+                 500);
     });
 
-    $('#regenerate-design').addEventListener('click', ()=>{
+    async function regenerateDesign(){
+      if(!uploadedFile){
+        alert('Сначала загрузите фото.');
+        return;
+      }
+      if(!lastFeedback){
+        alert('Сначала отправьте сообщение с правками.');
+        return;
+      }
+      const btn = $('#regenerate-design');
+      btn.disabled = true;
       addMessage('ai','Перегенерирую с учётом правок…');
-    });
+      hide($('#result-image'));
+      show($('#result-placeholder'));
+      try{
+        const fd = new FormData();
+        fd.append('image', uploadedFile, uploadedFile.name);
+        fd.append('prompt', `${lastPrompt}. ${lastFeedback}`.trim());
+
+        const res = await fetch('/api/redesign', { method:'POST', body: fd });
+        if(!res.ok){
+          const t = await res.text();
+          throw new Error(`API ошибка ${res.status}: ${t}`);
+        }
+
+        const data = await res.json();
+        const imgSrc = data.image_base64
+          ? `data:image/png;base64,${data.image_base64}`
+          : data.image_url;
+
+        const resultImg = $('#result-image');
+        resultImg.src = imgSrc;
+        resultImg.onload = ()=>{
+          hide($('#result-placeholder'));
+          show(resultImg);
+        };
+      }catch(err){
+        console.error(err);
+        addMessage('ai', 'Ошибка: ' + err.message);
+        hide($('#result-image'));
+        $('#result-placeholder').textContent = 'Ошибка генерации';
+      }finally{
+        btn.disabled = false;
+      }
+    }
+
+    $('#regenerate-design').addEventListener('click', regenerateDesign);
 
     $('#approve-design').addEventListener('click', ()=>{
       setStep(6);
