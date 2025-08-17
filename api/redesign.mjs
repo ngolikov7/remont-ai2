@@ -5,7 +5,6 @@ export const config = { api: { bodyParser: false } };
 import { IncomingForm } from "formidable";
 import fs from "fs";
 import OpenAI from "openai";
-import sharp from "sharp";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -43,19 +42,17 @@ export default async function handler(req, res) {
       return;
     }
 
-    if (!imgFile.mimetype?.startsWith("image/")) {
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(imgFile.mimetype)) {
       fs.unlink(imgFile.filepath, () => {});
       res.status(400).json({ error: `Unsupported image type ${imgFile.mimetype}` });
       return;
     }
 
-    const pngBuffer = await sharp(imgFile.filepath).png().toBuffer();
-    const imageFile = await OpenAI.toFile(pngBuffer, "image.png", { type: "image/png" });
-
     const gen = await client.images.edit({
       model: "gpt-image-1",
       prompt,
-      image: imageFile,
+      image: fs.createReadStream(imgFile.filepath),
       size: "1024x1024",
     });
 
