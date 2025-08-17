@@ -42,6 +42,13 @@ export default async function handler(req, res) {
       return;
     }
 
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(imgFile.mimetype)) {
+      fs.unlink(imgFile.filepath, () => {});
+      res.status(400).json({ error: `Unsupported image type ${imgFile.mimetype}` });
+      return;
+    }
+
     const gen = await client.images.edit({
       model: "gpt-image-1",
       prompt,
