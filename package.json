@@ -5,6 +5,7 @@
   "type": "module",
   "dependencies": {
     "openai": "^4.54.0",
-    "formidable": "^3.5.2"
+    "formidable": "^3.5.2",
+    "sharp": "^0.33.2"
   }
 }
