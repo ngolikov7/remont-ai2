@@ -49,14 +49,14 @@
         <div id="upload-content">
           <div class="text-6xl mb-4">📷</div>
           <h3 class="text-xl font-semibold text-gray-700 mb-2">Перетащите фото сюда или нажмите для выбора</h3>
-          <p class="text-gray-500">Поддерживаются JPG/PNG/WEBP (до 10 МБ)</p>
+          <p class="text-gray-500">Можно загружать любые изображения (до 10 МБ)</p>
         </div>
         <div id="preview-content" class="hidden">
           <img id="preview-image" class="max-w-full max-h-64 mx-auto rounded-lg shadow-md mb-3" alt="Предпросмотр"/>
           <p class="text-green-600 font-medium">✅ Фото загружено успешно</p>
         </div>
       </div>
-      <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" />
+      <input id="fileInput" type="file" accept="image/*" class="hidden" />
       <button id="next-to-params" class="hidden mt-6 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:from-purple-600 hover:to-blue-600 transition">
         Далее: Параметры комнаты →
       </button>
@@ -207,7 +207,6 @@
     }
 
     // ---------- state ----------
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
     let uploadedFile = null;
     let lastPrompt = '';
 
@@ -228,8 +227,8 @@
 
     function handleFile(f){
       if(!f) return;
-      if(!allowedTypes.includes(f.type)){
-        alert('Поддерживаются только JPG, PNG или WEBP');
+      if(!f.type || !f.type.startsWith('image/')){
+        alert('Можно загружать только изображения');
         return;
       }
       if(f.size > 10*1024*1024){
@@ -258,7 +257,7 @@
       // формируем подсказку
       const roomType = $('#room-type').value || 'комната';
       const style = $('#style').value || 'современный стиль';
-      theconst wishes = $('#additional-wishes').value || '';
+      const wishes = $('#additional-wishes').value || '';
       const length = $('#room-length').value;
       const width = $('#room-width').value;
       const height = $('#room-height').value;
