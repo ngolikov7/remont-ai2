@@ -37,10 +37,10 @@
       <div class="w-8 h-0.5 bg-gray-300"></div>
       <div id="step4Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">4 Правки</div>
       <div class="w-8 h-0.5 bg-gray-300"></div>
-      <div id="step5Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">5 План</div>
+      <div id="step5Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">5 План ремонта</div>
     </div>
 
-    <!-- Step 1: upload + params -->
+    <!-- Step 1: upload & params -->
     <section id="upload-params-section" class="bg-white rounded-xl shadow-lg p-8">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Загрузите фото и задайте параметры</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -49,11 +49,11 @@
             <div id="upload-content">
               <div class="text-6xl mb-4">📷</div>
               <h3 class="text-xl font-semibold text-gray-700 mb-2">Перетащите фото сюда или нажмите для выбора</h3>
-              <p class="text-gray-500">Поддерживаются любые изображения (до 10 МБ)</p>
+              <p class="text-gray-500">Можно загружать любые изображения (до 10 МБ)</p>
             </div>
             <div id="preview-content" class="hidden">
               <div id="preview-images" class="flex flex-wrap gap-4 justify-center mb-3"></div>
-              <p class="text-green-600 font-medium">✅ Фото загружено</p>
+              <p class="text-green-600 font-medium">✅ Фото загружено успешно</p>
             </div>
           </div>
           <input id="fileInput" type="file" accept="image/*" multiple class="hidden" />
@@ -77,12 +77,12 @@
               <label class="block text-sm font-medium text-gray-700 mb-2">Тип комнаты</label>
               <select id="room-type" class="w-full px-4 py-3 border rounded-lg">
                 <option value="">Выберите</option>
-                <option>Гостиная</option>
-                <option>Спальня</option>
-                <option>Кухня</option>
-                <option>Ванная</option>
-                <option>Кабинет</option>
-                <option>Детская</option>
+                <option value="Гостиная">Гостиная</option>
+                <option value="Спальня">Спальня</option>
+                <option value="Кухня">Кухня</option>
+                <option value="Ванная">Ванная</option>
+                <option value="Кабинет">Кабинет</option>
+                <option value="Детская">Детская</option>
               </select>
             </div>
           </div>
@@ -147,16 +147,17 @@
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Ваш новый дизайн готов!</h2>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
-          <h3 class="text-lg font-semibold mb-4">Исходные фото</h3>
-          <div id="final-origins" class="bg-gray-100 rounded-lg p-4 min-h-64 flex flex-wrap gap-4 justify-center"></div>
+          <h3 class="text-lg font-semibold mb-4">Исходное фото</h3>
+          <div class="bg-gray-100 rounded-lg p-4 min-h-64 flex items-center justify-center">
+            <img id="final-origin" class="max-h-56 rounded" alt="Исходное"/>
+          </div>
         </div>
         <div>
-          <h3 class="text-lg font-semibold mb-4">Новые варианты</h3>
+          <h3 class="text-lg font-semibold mb-4">Новый дизайн</h3>
           <div class="bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg p-4 min-h-64 flex items-center justify-center">
             <img id="result-image" class="max-h-60 object-contain hidden" alt="Сгенерированный дизайн"/>
             <span id="result-placeholder" class="text-gray-700 text-center">⏳ Генерируем визуализацию…</span>
           </div>
-          <div id="variants" class="mt-4 flex flex-wrap gap-4"></div>
         </div>
       </div>
 
@@ -206,8 +207,6 @@
     let uploadedFiles = [];
     let lastPrompt = '';
     let lastFeedback = '';
-    let variants = [];
-    let selectedVariant = -1;
 
     // ---------- step 1 ----------
     const fileInput = $('#fileInput');
@@ -238,24 +237,24 @@
         reader.onload = e=>{
           const img = document.createElement('img');
           img.src = e.target.result;
-          img.className = 'max-h-32 rounded';
+          img.className = 'max-h-32 rounded mx-auto';
           $('#preview-images').appendChild(img);
-          const img2 = document.createElement('img');
-          img2.src = e.target.result;
-          img2.className = 'max-h-56 rounded';
-          $('#final-origins').appendChild(img2);
         };
         reader.readAsDataURL(f);
       });
       if(uploadedFiles.length > 0){
         hide($('#upload-content'));
         show($('#preview-content'));
+        show($('#next-to-wishes'));
+        const r = new FileReader();
+        r.onload = e=> { $('#final-origin').src = e.target.result; };
+        r.readAsDataURL(uploadedFiles[0]);
       }
     }
 
     $('#next-to-wishes').addEventListener('click', ()=> setStep(2));
 
-    // ---------- step 2 → 3 ----------
+    // ---------- step 2 → 3 (call API) ----------
     $('#start-generation').addEventListener('click', async ()=>{
       if(!uploadedFiles.length){ alert('Сначала загрузите фото.'); return; }
 
@@ -266,84 +265,65 @@
       const width = $('#room-width').value;
       const height = $('#room-height').value;
       let dims = '';
-      if(length || width || height){
-        const parts = [];
-        if(length) parts.push(`длина ${length} м`);
-        if(width) parts.push(`ширина ${width} м`);
-        if(height) parts.push(`высота ${height} м`);
-        dims = ` Размеры: ${parts.join(', ')}.`;
+      if (length || width || height) {
+        if (length && width && height) {
+          dims = ` Размеры: ${length}×${width}×${height} м.`;
+        } else {
+          const parts = [];
+          if (length) parts.push(`длина ${length} м`);
+          if (width) parts.push(`ширина ${width} м`);
+          if (height) parts.push(`высота ${height} м`);
+          dims = ` Размеры: ${parts.join(', ')}.`;
+        }
       }
       lastPrompt = `Сделай редизайн: ${roomType}, стиль: ${style}. ${wishes}${dims}`.trim();
 
       setStep(3);
-      updateProgress(10,'Загружаем фото…');
+      updateProgress(10, 'Загружаем фото…');
 
       try{
         const fd = new FormData();
         uploadedFiles.forEach(f=> fd.append('image', f, f.name));
         fd.append('prompt', lastPrompt);
 
-        updateProgress(25,'Отправляем на сервер…');
-        const res = await fetch('/api/redesign', {method:'POST', body:fd});
+        updateProgress(25, 'Отправляем на сервер…');
+        const res = await fetch('/api/redesign', { method:'POST', body: fd });
+
         if(!res.ok){
           const t = await res.text();
           throw new Error(`API ошибка ${res.status}: ${t}`);
         }
 
-        updateProgress(65,'Генерация дизайна…');
+        updateProgress(65, 'Генерация дизайна…');
         const data = await res.json();
-        const imgSrc = data.image_base64 ? `data:image/png;base64,${data.image_base64}` : data.image_url;
+        const imgSrc = data.image_base64
+          ? `data:image/png;base64,${data.image_base64}`
+          : data.image_url;
 
-        updateProgress(95,'Готовим результат…');
-        setStep(4);
-        addVariant(imgSrc);
-        updateProgress(100,'Готово!');
-      }catch(err){
-        console.error(err);
-        alert('Не удалось сгенерировать дизайн: '+err.message);
-        setStep(2);
-      }
-    });
-
-    function updateProgress(pct,text){
-      $('#progress-bar').style.width = pct + '%';
-      $('#progress-text').textContent = text;
-    }
-
-    // ---------- variants ----------
-    function addVariant(src){
-      variants.push(src);
-      selectedVariant = variants.length-1;
-      renderVariants();
-    }
-
-    function renderVariants(){
-      const cont = $('#variants');
-      cont.innerHTML = '';
-      variants.forEach((src,i)=>{
-        const img = document.createElement('img');
-        img.src = src;
-        img.className = 'h-20 w-20 object-cover rounded cursor-pointer border-4 '+(i===selectedVariant?'border-purple-500':'border-transparent');
-        img.addEventListener('click',()=>{
-          selectedVariant = i;
-          $('#result-image').src = src;
-          renderVariants();
-        });
-        cont.appendChild(img);
-      });
-      const current = variants[selectedVariant];
-      if(current){
+        updateProgress(95, 'Готовим результат…');
         const resultImg = $('#result-image');
-        resultImg.src = current;
+        resultImg.src = imgSrc;
         resultImg.onload = ()=>{
           hide($('#result-placeholder'));
           show(resultImg);
         };
+
+        updateProgress(100, 'Готово!');
+        setStep(4);
+      }catch(err){
+        console.error(err);
+        alert('Не удалось сгенерировать дизайн: ' + err.message);
+        setStep(2);
       }
+    });
+
+    function updateProgress(pct, text){
+      $('#progress-bar').style.width = pct + '%';
+      $('#progress-text').textContent = text;
     }
 
     // ---------- чат и перегенерация ----------
-    function addMessage(who,text){
+    function addMessage(who, text){
       const c = $('#chat-container');
       const wrap = document.createElement('div');
       wrap.className = 'mb-3';
@@ -360,13 +340,20 @@
       if(!val) return;
       lastFeedback = val;
       addMessage('user', val);
-      $('#chat-input').value='';
-      setTimeout(()=> addMessage('ai','Принято! Нажмите «Перегенерировать».') ,500);
+      $('#chat-input').value = '';
+      setTimeout(()=> addMessage('ai','Принято! Нажмите «Перегенерировать».'),
+                 500);
     });
 
     async function regenerateDesign(){
-      if(!uploadedFiles.length){ alert('Сначала загрузите фото.'); return; }
-      if(!lastFeedback){ alert('Напишите сообщение с правками.'); return; }
+      if(!uploadedFiles.length){
+        alert('Сначала загрузите фото.');
+        return;
+      }
+      if(!lastFeedback){
+        alert('Сначала отправьте сообщение с правками.');
+        return;
+      }
       const btn = $('#regenerate-design');
       btn.disabled = true;
       addMessage('ai','Перегенерирую с учётом правок…');
@@ -376,17 +363,28 @@
         const fd = new FormData();
         uploadedFiles.forEach(f=> fd.append('image', f, f.name));
         fd.append('prompt', `${lastPrompt}. ${lastFeedback}`.trim());
-        const res = await fetch('/api/redesign', {method:'POST', body:fd});
+
+        const res = await fetch('/api/redesign', { method:'POST', body: fd });
         if(!res.ok){
           const t = await res.text();
           throw new Error(`API ошибка ${res.status}: ${t}`);
         }
+
         const data = await res.json();
-        const imgSrc = data.image_base64 ? `data:image/png;base64,${data.image_base64}` : data.image_url;
-        addVariant(imgSrc);
+        const imgSrc = data.image_base64
+          ? `data:image/png;base64,${data.image_base64}`
+          : data.image_url;
+
+        const resultImg = $('#result-image');
+        resultImg.src = imgSrc;
+        resultImg.onload = ()=>{
+          hide($('#result-placeholder'));
+          show(resultImg);
+        };
       }catch(err){
         console.error(err);
-        addMessage('ai','Ошибка: '+err.message);
+        addMessage('ai', 'Ошибка: ' + err.message);
+        hide($('#result-image'));
         $('#result-placeholder').textContent = 'Ошибка генерации';
       }finally{
         btn.disabled = false;
