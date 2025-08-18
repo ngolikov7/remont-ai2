@@ -5,13 +5,14 @@ export const config = { api: { bodyParser: false } };
 import { IncomingForm } from "formidable";
 import fs from "fs";
 import OpenAI from "openai";
+import sharp from "sharp";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 function parseMultipart(req) {
   return new Promise((resolve, reject) => {
     const form = new IncomingForm({
-      multiples: false,
+      multiples: true,
       keepExtensions: true,
       maxFileSize: 15 * 1024 * 1024,
     });
@@ -36,27 +37,34 @@ export default async function handler(req, res) {
       return;
     }
 
-    const imgFile = Array.isArray(files?.image) ? files.image[0] : files.image;
-    if (!imgFile?.filepath) {
+    const imgs = files?.image;
+    const arr = Array.isArray(imgs) ? imgs : [imgs].filter(Boolean);
+    if (!arr.length) {
       res.status(400).json({ error: "Missing image" });
       return;
     }
 
-    const allowed = ["image/jpeg", "image/png", "image/webp"];
-    if (!allowed.includes(imgFile.mimetype)) {
-      fs.unlink(imgFile.filepath, () => {});
-      res.status(400).json({ error: `Unsupported image type ${imgFile.mimetype}` });
+    let imageFiles = [];
+    try {
+      for (let i = 0; i < arr.length; i++) {
+        const buf = await sharp(arr[i].filepath).png().toBuffer();
+        const file = await OpenAI.toFile(buf, `image${i}.png`, { type: "image/png" });
+        imageFiles.push(file);
+      }
+    } catch (err) {
+      arr.forEach(f => f?.filepath && fs.unlink(f.filepath, () => {}));
+      res.status(400).json({ error: "Unsupported image type" });
       return;
     }
 
     const gen = await client.images.edit({
       model: "gpt-image-1",
       prompt,
-      image: fs.createReadStream(imgFile.filepath),
+      image: imageFiles,
       size: "1024x1024",
     });
 
-    fs.unlink(imgFile.filepath, () => {});
+    arr.forEach(f => f?.filepath && fs.unlink(f.filepath, () => {}));
 
     const b64 = gen?.data?.[0]?.b64_json;
     if (b64) return res.status(200).json({ image_base64: b64 });
