@@ -96,194 +96,237 @@
     <!-- Step 2: wishes -->
     <section id="wishes-section" class="hidden bg-white rounded-xl shadow-lg p-8">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Ваши пожелания</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Стиль интерьера</label>
-          <select id="style" class="w-full px-4 py-3 border rounded-lg">
-            <option value="">Выберите стиль</option>
-            <option>Современный</option>
-            <option>Классический</option>
-            <option>Скандинавский</option>
-            <option>Лофт</option>
-            <option>Минимализм</option>
-            <option>Неоклассика</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Бюджет (руб.)</label>
-          <select id="budget" class="w-full px-4 py-3 border rounded-lg">
-            <option value="">Выберите бюджет</option>
-            <option>До 100 000</option>
-            <option>100 000 – 300 000</option>
-            <option>300 000 – 500 000</option>
-            <option>500 000 – 1 000 000</option>
-            <option>Более 1 000 000</option>
-          </select>
-        </div>
-      </div>
-      <div class="mt-6">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Дополнительные пожелания</label>
-        <textarea id="additional-wishes" rows="4" class="w-full px-4 py-3 border rounded-lg" placeholder="Цвета, мебель, освещение, особые требования…"></textarea>
-      </div>
-      <button id="start-generation" class="mt-6 bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:from-green-600 hover:to-blue-600 transition">
-        🎨 Начать генерацию дизайна
-      </button>
-    </section>
-
-    <!-- Step 3: generation -->
-    <section id="generation-section" class="hidden bg-white rounded-xl shadow-lg p-8">
-      <div class="text-center">
-        <div class="ai-thinking text-6xl mb-4">🤖</div>
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">ИИ создает дизайн вашей комнаты</h2>
-        <p id="progress-text" class="text-gray-600 mb-6">Инициализация…</p>
-        <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
-          <div id="progress-bar" class="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full" style="width:0%"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Step 4: review -->
-    <section id="review-section" class="hidden bg-white rounded-xl shadow-lg p-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Ваш новый дизайн готов!</h2>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div>
-          <h3 class="text-lg font-semibold mb-4">Исходное фото</h3>
-          <div class="bg-gray-100 rounded-lg p-4 min-h-64 flex items-center justify-center">
-            <img id="final-origin" class="max-h-56 rounded" alt="Исходное"/>
+          <div class="upload-area rounded-lg p-12 text-center cursor-pointer mb-6" id="ref-upload-area">
+            <div id="ref-upload-content">
+              <div class="text-6xl mb-4">🖼️</div>
+              <h3 class="text-xl font-semibold text-gray-700 mb-2">Перетащите референсы сюда или нажмите для выбора</h3>
+              <p class="text-gray-500">Можно загружать изображения до 10 МБ</p>
+            </div>
+            <div id="ref-preview-content" class="hidden">
+              <div id="ref-preview-images" class="flex flex-wrap gap-4 justify-center mb-3"></div>
+              <p class="text-green-600 font-medium">✅ Референсы загружены</p>
+            </div>
           </div>
+          <input id="refFileInput" type="file" accept="image/*" multiple class="hidden" />
         </div>
         <div>
-          <h3 class="text-lg font-semibold mb-4">Новый дизайн</h3>
-          <div class="bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg p-4 min-h-64 flex items-center justify-center">
-            <img id="result-image" class="max-h-60 object-contain hidden" alt="Сгенерированный дизайн"/>
-            <span id="result-placeholder" class="text-gray-700 text-center">⏳ Генерируем визуализацию…</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-8">
-        <h3 class="text-lg font-semibold mb-4">Чат с ИИ для правок</h3>
-        <div id="chat-container" class="border rounded-lg h-64 overflow-y-auto p-4 mb-4 bg-gray-50">
-          <div class="mb-3">
-            <div class="bg-blue-100 rounded-lg p-3 inline-block">
-              <strong>ИИ:</strong> Дизайн готов! Что хотели бы изменить?
+          <div class="grid grid-cols-1 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Стиль интерьера</label>
+              <select id="style" class="w-full px-4 py-3 border rounded-lg">
+                <option value="">Выберите стиль</option>
+                <option>Современный</option>
+                <option>Классический</option>
+                <option>Скандинавский</option>
+                <option>Лофт</option>
+                <option>Минимализм</option>
+                <option>Хай-тек</option>
+                <option>Эко</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Цветовая палитра</label>
+              <input id="colors" type="text" class="w-full px-4 py-3 border rounded-lg" placeholder="Например: светлые оттенки, акценты зелёного">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Дополнительные пожелания</label>
+              <textarea id="additional" rows="4" class="w-full px-4 py-3 border rounded-lg" placeholder="Опишите, что бы вы хотели видеть в дизайне"></textarea>
             </div>
           </div>
         </div>
-        <div class="flex space-x-2">
-          <input id="chat-input" type="text" class="flex-1 px-4 py-2 border rounded-lg" placeholder="Напишите, что хотите изменить…">
-          <button id="send-message" class="bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-600">Отправить</button>
-        </div>
+      </div>
+      <div class="flex justify-end mt-6">
+        <button id="generate-design" class="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:from-purple-600 hover:to-blue-600 transition">
+          Сгенерировать дизайн →
+        </button>
+      </div>
+    </section>
 
-        <div class="flex space-x-4 mt-6">
-          <button id="regenerate-design" class="bg-yellow-500 text-white px-6 py-3 rounded-lg hover:bg-yellow-600">🔄 Перегенерировать</button>
-          <button id="approve-design" class="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600">✅ Утвердить дизайн</button>
+    <!-- Step 3: generation progress -->
+    <section id="generation-section" class="hidden">
+      <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+        <div class="mb-6">
+          <div class="ai-thinking text-6xl mb-4">🤖</div>
+          <p id="progress-text" class="text-xl text-gray-700">Готовим ваш дизайн...</p>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-4">
+          <div id="progress-bar" class="bg-gradient-to-r from-purple-500 to-blue-500 h-4 rounded-full transition-all" style="width: 0%"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 4: result + chat -->
+    <section id="result-section" class="hidden bg-white rounded-xl shadow-lg p-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Предложение дизайна</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <img id="result-image" src="" alt="Результат" class="w-full h-auto rounded-lg hidden">
+          <div id="result-placeholder" class="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+            <div class="ai-thinking text-4xl">⌛</div>
+          </div>
+        </div>
+        <div>
+          <div id="chat-container" class="h-64 overflow-y-auto mb-4 p-4 border rounded-lg bg-gray-50">
+            <!-- чат -->
+          </div>
+          <div class="flex space-x-2">
+            <input id="chat-input" type="text" class="flex-grow px-4 py-2 border rounded-lg" placeholder="Напишите пожелания по правкам">
+            <button id="send-message" class="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-lg">Отправить</button>
+          </div>
+          <div class="flex space-x-4 mt-4">
+            <button id="regenerate-design" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+              <span>Перегенерировать</span>
+            </button>
+            <button id="approve-design" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+              <span>Утвердить</span>
+            </button>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- Step 5: plan -->
     <section id="plan-section" class="hidden bg-white rounded-xl shadow-lg p-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">План ремонта и список покупок</h2>
-      <p class="text-gray-600">Здесь будет смета, этапы работ и список материалов — добавим после утверждения дизайна.</p>
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">План ремонта</h2>
+      <p class="text-gray-700">Здесь появится план ремонта на основе утверждённого дизайна.</p>
     </section>
   </div>
 
   <script>
-    // ---------- helpers ----------
-    const $ = (s, root = document) => root.querySelector(s);
+    const $ = sel => document.querySelector(sel);
     const show = el => el.classList.remove('hidden');
     const hide = el => el.classList.add('hidden');
 
-    const chips = ['step1','step2','step3','step4','step5'].map(id => $('#'+id+'Chip'));
-    function setStep(n){
-      const sections = ['upload-params','wishes','generation','review','plan'].map(id => $('#'+id+'-section'));
-      sections.forEach((el,i)=> i===n-1 ? show(el) : hide(el));
-      chips.forEach((el,i)=> el.className = (i===n-1) ? 'step-active px-4 py-2 rounded-full text-sm font-medium' : 'step-inactive px-4 py-2 rounded-full text-sm font-medium');
-      window.scrollTo({top:0,behavior:'smooth'});
-    }
-
-    // ---------- state ----------
+    let currentStep = 1;
     let uploadedFiles = [];
+    let referenceFiles = [];
     let lastPrompt = '';
     let lastFeedback = '';
 
-    // ---------- step 1 ----------
-    const fileInput = $('#fileInput');
-    const uploadArea = $('#upload-area');
-    uploadArea.addEventListener('click', ()=> fileInput.click());
-    uploadArea.addEventListener('dragover', e=>{e.preventDefault(); uploadArea.classList.add('bg-blue-50')});
-    uploadArea.addEventListener('dragleave', ()=> uploadArea.classList.remove('bg-blue-50'));
-    uploadArea.addEventListener('drop', e=>{
-      e.preventDefault();
-      uploadArea.classList.remove('bg-blue-50');
-      if(e.dataTransfer.files) handleFiles(e.dataTransfer.files);
-    });
-    fileInput.addEventListener('change', ()=> handleFiles(fileInput.files));
+    function setStep(n){
+      currentStep = n;
+      ['step1Chip','step2Chip','step3Chip','step4Chip','step5Chip'].forEach((id,i)=>{
+        const el = $('#' + id);
+        i+1 === n ? el.className = 'step-active px-4 py-2 rounded-full text-sm font-medium'
+                  : el.className = 'step-inactive px-4 py-2 rounded-full text-sm font-medium';
+      });
+      hide($('#upload-params-section'));
+      hide($('#wishes-section'));
+      hide($('#generation-section'));
+      hide($('#result-section'));
+      hide($('#plan-section'));
+      if(n===1) show($('#upload-params-section'));
+      if(n===2) show($('#wishes-section'));
+      if(n===3) show($('#generation-section'));
+      if(n===4) show($('#result-section'));
+      if(n===5) show($('#plan-section'));
+    }
 
-    function handleFiles(fileList){
-      const files = Array.from(fileList || []);
+    function handleUploads(input, arr, previewContainer){
+      const files = Array.from(input.files || []);
       files.forEach(f=>{
-        if(f.size > 10*1024*1024){
-          alert('Файл больше 10 МБ');
-          return;
-        }
-        if(f.type && !f.type.startsWith('image/')){
+        if(!f.type.startsWith('image/')){
           alert('Можно загружать только изображения');
           return;
         }
-        uploadedFiles.push(f);
-        const reader = new FileReader();
-        reader.onload = e=>{
-          const img = document.createElement('img');
-          img.src = e.target.result;
-          img.className = 'max-h-32 rounded mx-auto';
-          $('#preview-images').appendChild(img);
-        };
-        reader.readAsDataURL(f);
+        arr.push(f);
       });
-      if(uploadedFiles.length > 0){
-        hide($('#upload-content'));
-        show($('#preview-content'));
-        show($('#next-to-wishes'));
-        const r = new FileReader();
-        r.onload = e=> { $('#final-origin').src = e.target.result; };
-        r.readAsDataURL(uploadedFiles[0]);
-      }
+      previewContainer.innerHTML = '';
+      arr.forEach(f=>{
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(f);
+        img.className = 'w-24 h-24 object-cover rounded';
+        previewContainer.appendChild(img);
+      });
     }
 
-    $('#next-to-wishes').addEventListener('click', ()=> setStep(2));
-
-    // ---------- step 2 → 3 (call API) ----------
-    $('#start-generation').addEventListener('click', async ()=>{
-      if(!uploadedFiles.length){ alert('Сначала загрузите фото.'); return; }
-
-      const roomType = $('#room-type').value || 'комната';
-      const style = $('#style').value || 'современный стиль';
-      const wishes = $('#additional-wishes').value || '';
-      const length = $('#room-length').value;
-      const width = $('#room-width').value;
-      const height = $('#room-height').value;
-      let dims = '';
-      if (length || width || height) {
-        if (length && width && height) {
-          dims = ` Размеры: ${length}×${width}×${height} м.`;
-        } else {
-          const parts = [];
-          if (length) parts.push(`длина ${length} м`);
-          if (width) parts.push(`ширина ${width} м`);
-          if (height) parts.push(`высота ${height} м`);
-          dims = ` Размеры: ${parts.join(', ')}.`;
-        }
+    $('#upload-area').addEventListener('click',()=> $('#fileInput').click());
+    $('#fileInput').addEventListener('change', e=>{
+      uploadedFiles = [];
+      handleUploads(e.target, uploadedFiles, $('#preview-images'));
+      if(uploadedFiles.length){
+        hide($('#upload-content'));
+        show($('#preview-content'));
       }
-      lastPrompt = `Сделай редизайн: ${roomType}, стиль: ${style}. ${wishes}${dims}`.trim();
+    });
+
+    $('#upload-area').addEventListener('dragover', e=>{
+      e.preventDefault();
+      e.stopPropagation();
+    });
+    $('#upload-area').addEventListener('drop', e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      const dtFiles = e.dataTransfer.files;
+      uploadedFiles = [];
+      handleUploads({ files: dtFiles }, uploadedFiles, $('#preview-images'));
+      if(uploadedFiles.length){
+        hide($('#upload-content'));
+        show($('#preview-content'));
+      }
+    });
+
+    $('#ref-upload-area').addEventListener('click',()=> $('#refFileInput').click());
+    $('#refFileInput').addEventListener('change', e=>{
+      referenceFiles = [];
+      handleUploads(e.target, referenceFiles, $('#ref-preview-images'));
+      if(referenceFiles.length){
+        hide($('#ref-upload-content'));
+        show($('#ref-preview-content'));
+      }
+    });
+
+    $('#ref-upload-area').addEventListener('dragover', e=>{
+      e.preventDefault();
+      e.stopPropagation();
+    });
+    $('#ref-upload-area').addEventListener('drop', e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      const dtFiles = e.dataTransfer.files;
+      referenceFiles = [];
+      handleUploads({ files: dtFiles }, referenceFiles, $('#ref-preview-images'));
+      if(referenceFiles.length){
+        hide($('#ref-upload-content'));
+        show($('#ref-preview-content'));
+      }
+    });
+
+    $('#next-to-wishes').addEventListener('click', ()=>{
+      if(!uploadedFiles.length){
+        alert('Сначала загрузите фото комнаты');
+        return;
+      }
+      lastPrompt = '';
+      setStep(2);
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+
+    $('#generate-design').addEventListener('click', async ()=>{
+      if(!uploadedFiles.length){
+        alert('Сначала загрузите фото комнаты');
+        return;
+      }
+      const style = $('#style').value.trim();
+      const colors = $('#colors').value.trim();
+      const additional = $('#additional').value.trim();
+      const roomLength = $('#room-length').value || '';
+      const roomWidth = $('#room-width').value || '';
+      const roomHeight = $('#room-height').value || '';
+      const roomType = $('#room-type').value || '';
+
+      let prompt = `Стиль: ${style || 'любой'}. Цвета: ${colors || 'не указаны'}. Доп: ${additional || 'нет'}.
+Размеры: ${roomLength}x${roomWidth}x${roomHeight}. Тип: ${roomType || 'не указан'}.`;
+      lastPrompt = prompt;
 
       setStep(3);
       updateProgress(10, 'Загружаем фото…');
 
       try{
         const fd = new FormData();
-        uploadedFiles.forEach(f=> fd.append('image', f, f.name));
+        [...uploadedFiles, ...referenceFiles].forEach(f=> fd.append('image', f, f.name));
         fd.append('prompt', lastPrompt);
 
         updateProgress(25, 'Отправляем на сервер…');
@@ -361,7 +404,7 @@
       show($('#result-placeholder'));
       try{
         const fd = new FormData();
-        uploadedFiles.forEach(f=> fd.append('image', f, f.name));
+        [...uploadedFiles, ...referenceFiles].forEach(f=> fd.append('image', f, f.name));
         fd.append('prompt', `${lastPrompt}. ${lastFeedback}`.trim());
 
         const res = await fetch('/api/redesign', { method:'POST', body: fd });
