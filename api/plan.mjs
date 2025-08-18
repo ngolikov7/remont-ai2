@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     const resp = await client.responses.create({
       model: "gpt-4.1-mini",
       input: planPrompt,
-      response_format: { type: "json_object" }
+      text: { format: { type: "json_object" } }
     });
 
     const text = resp.output_text;
