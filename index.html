@@ -29,66 +29,63 @@
   <!-- Steps -->
   <div class="max-w-7xl mx-auto px-4 py-6">
     <div class="flex items-center space-x-4 mb-8">
-      <div id="step1Chip" class="step-active px-4 py-2 rounded-full text-sm font-medium">1 Загрузка фото</div>
+      <div id="step1Chip" class="step-active px-4 py-2 rounded-full text-sm font-medium">1 Фото и параметры</div>
       <div class="w-8 h-0.5 bg-gray-300"></div>
-      <div id="step2Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">2 Параметры</div>
+      <div id="step2Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">2 Пожелания</div>
       <div class="w-8 h-0.5 bg-gray-300"></div>
-      <div id="step3Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">3 Пожелания</div>
+      <div id="step3Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">3 Генерация</div>
       <div class="w-8 h-0.5 bg-gray-300"></div>
-      <div id="step4Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">4 Генерация</div>
+      <div id="step4Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">4 Правки</div>
       <div class="w-8 h-0.5 bg-gray-300"></div>
-      <div id="step5Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">5 Правки</div>
-      <div class="w-8 h-0.5 bg-gray-300"></div>
-      <div id="step6Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">6 План ремонта</div>
+      <div id="step5Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">5 План</div>
     </div>
 
-    <!-- Step 1: upload -->
-    <section id="upload-section" class="bg-white rounded-xl shadow-lg p-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Загрузите фотографию вашей комнаты</h2>
-      <div class="upload-area rounded-lg p-12 text-center cursor-pointer" id="upload-area">
-        <div id="upload-content">
-          <div class="text-6xl mb-4">📷</div>
-          <h3 class="text-xl font-semibold text-gray-700 mb-2">Перетащите фото сюда или нажмите для выбора</h3>
-          <p class="text-gray-500">Поддерживаются JPG/PNG/WEBP (до 10 МБ)</p>
-        </div>
-        <div id="preview-content" class="hidden">
-          <img id="preview-image" class="max-w-full max-h-64 mx-auto rounded-lg shadow-md mb-3" alt="Предпросмотр"/>
-          <p class="text-green-600 font-medium">✅ Фото загружено успешно</p>
-        </div>
-      </div>
-      <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" />
-      <button id="next-to-params" class="hidden mt-6 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:from-purple-600 hover:to-blue-600 transition">
-        Далее: Параметры комнаты →
-      </button>
-    </section>
-
-    <!-- Step 2: params -->
-    <section id="params-section" class="hidden bg-white rounded-xl shadow-lg p-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Параметры вашей комнаты</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Step 1: upload + params -->
+    <section id="upload-params-section" class="bg-white rounded-xl shadow-lg p-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Загрузите фото и задайте параметры</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Длина (м)</label>
-          <input id="room-length" type="number" class="w-full px-4 py-3 border rounded-lg" placeholder="4.5">
+          <div class="upload-area rounded-lg p-12 text-center cursor-pointer mb-6" id="upload-area">
+            <div id="upload-content">
+              <div class="text-6xl mb-4">📷</div>
+              <h3 class="text-xl font-semibold text-gray-700 mb-2">Перетащите фото сюда или нажмите для выбора</h3>
+              <p class="text-gray-500">Поддерживаются любые изображения (до 10 МБ)</p>
+            </div>
+            <div id="preview-content" class="hidden">
+              <div id="preview-images" class="flex flex-wrap gap-4 justify-center mb-3"></div>
+              <p class="text-green-600 font-medium">✅ Фото загружено</p>
+            </div>
+          </div>
+          <input id="fileInput" type="file" accept="image/*" multiple class="hidden" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Ширина (м)</label>
-          <input id="room-width" type="number" class="w-full px-4 py-3 border rounded-lg" placeholder="3.2">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Высота потолка (м)</label>
-          <input id="room-height" type="number" class="w-full px-4 py-3 border rounded-lg" placeholder="2.7">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Тип комнаты</label>
-          <select id="room-type" class="w-full px-4 py-3 border rounded-lg">
-            <option value="">Выберите</option>
-            <option value="Гостиная">Гостиная</option>
-            <option value="Спальня">Спальня</option>
-            <option value="Кухня">Кухня</option>
-            <option value="Ванная">Ванная</option>
-            <option value="Кабинет">Кабинет</option>
-            <option value="Детская">Детская</option>
-          </select>
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">Параметры комнаты</h2>
+          <div class="grid grid-cols-1 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Длина (м)</label>
+              <input id="room-length" type="number" class="w-full px-4 py-3 border rounded-lg" placeholder="4.5">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Ширина (м)</label>
+              <input id="room-width" type="number" class="w-full px-4 py-3 border rounded-lg" placeholder="3.2">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Высота потолка (м)</label>
+              <input id="room-height" type="number" class="w-full px-4 py-3 border rounded-lg" placeholder="2.7">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Тип комнаты</label>
+              <select id="room-type" class="w-full px-4 py-3 border rounded-lg">
+                <option value="">Выберите</option>
+                <option>Гостиная</option>
+                <option>Спальня</option>
+                <option>Кухня</option>
+                <option>Ванная</option>
+                <option>Кабинет</option>
+                <option>Детская</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
       <button id="next-to-wishes" class="mt-6 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:from-purple-600 hover:to-blue-600 transition">
@@ -96,7 +93,7 @@
       </button>
     </section>
 
-    <!-- Step 3: wishes -->
+    <!-- Step 2: wishes -->
     <section id="wishes-section" class="hidden bg-white rounded-xl shadow-lg p-8">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Ваши пожелания</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -133,7 +130,7 @@
       </button>
     </section>
 
-    <!-- Step 4: generation -->
+    <!-- Step 3: generation -->
     <section id="generation-section" class="hidden bg-white rounded-xl shadow-lg p-8">
       <div class="text-center">
         <div class="ai-thinking text-6xl mb-4">🤖</div>
@@ -145,22 +142,21 @@
       </div>
     </section>
 
-    <!-- Step 5: review -->
+    <!-- Step 4: review -->
     <section id="review-section" class="hidden bg-white rounded-xl shadow-lg p-8">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Ваш новый дизайн готов!</h2>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
-          <h3 class="text-lg font-semibold mb-4">Исходное фото</h3>
-          <div class="bg-gray-100 rounded-lg p-4 min-h-64 flex items-center justify-center">
-            <img id="final-origin" class="max-h-56 rounded" alt="Исходное"/>
-          </div>
+          <h3 class="text-lg font-semibold mb-4">Исходные фото</h3>
+          <div id="final-origins" class="bg-gray-100 rounded-lg p-4 min-h-64 flex flex-wrap gap-4 justify-center"></div>
         </div>
         <div>
-          <h3 class="text-lg font-semibold mb-4">Новый дизайн</h3>
+          <h3 class="text-lg font-semibold mb-4">Новые варианты</h3>
           <div class="bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg p-4 min-h-64 flex items-center justify-center">
             <img id="result-image" class="max-h-60 object-contain hidden" alt="Сгенерированный дизайн"/>
             <span id="result-placeholder" class="text-gray-700 text-center">⏳ Генерируем визуализацию…</span>
           </div>
+          <div id="variants" class="mt-4 flex flex-wrap gap-4"></div>
         </div>
       </div>
 
@@ -185,7 +181,7 @@
       </div>
     </section>
 
-    <!-- Step 6: plan -->
+    <!-- Step 5: plan -->
     <section id="plan-section" class="hidden bg-white rounded-xl shadow-lg p-8">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">План ремонта и список покупок</h2>
       <p class="text-gray-600">Здесь будет смета, этапы работ и список материалов — добавим после утверждения дизайна.</p>
@@ -198,18 +194,20 @@
     const show = el => el.classList.remove('hidden');
     const hide = el => el.classList.add('hidden');
 
-    const chips = ['step1','step2','step3','step4','step5','step6'].map(id => $('#'+id+'Chip'));
+    const chips = ['step1','step2','step3','step4','step5'].map(id => $('#'+id+'Chip'));
     function setStep(n){
-      const sections = ['upload','params','wishes','generation','review','plan'].map(id => $('#'+id+'-section'));
+      const sections = ['upload-params','wishes','generation','review','plan'].map(id => $('#'+id+'-section'));
       sections.forEach((el,i)=> i===n-1 ? show(el) : hide(el));
       chips.forEach((el,i)=> el.className = (i===n-1) ? 'step-active px-4 py-2 rounded-full text-sm font-medium' : 'step-inactive px-4 py-2 rounded-full text-sm font-medium');
       window.scrollTo({top:0,behavior:'smooth'});
     }
 
     // ---------- state ----------
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-    let uploadedFile = null;
+    let uploadedFiles = [];
     let lastPrompt = '';
+    let lastFeedback = '';
+    let variants = [];
+    let selectedVariant = -1;
 
     // ---------- step 1 ----------
     const fileInput = $('#fileInput');
@@ -220,42 +218,47 @@
     uploadArea.addEventListener('drop', e=>{
       e.preventDefault();
       uploadArea.classList.remove('bg-blue-50');
-      if(e.dataTransfer.files && e.dataTransfer.files[0]) {
-        handleFile(e.dataTransfer.files[0]);
-      }
+      if(e.dataTransfer.files) handleFiles(e.dataTransfer.files);
     });
-    fileInput.addEventListener('change', ()=> handleFile(fileInput.files?.[0]));
+    fileInput.addEventListener('change', ()=> handleFiles(fileInput.files));
 
-    function handleFile(f){
-      if(!f) return;
-      if(!allowedTypes.includes(f.type)){
-        alert('Поддерживаются только JPG, PNG или WEBP');
-        return;
-      }
-      if(f.size > 10*1024*1024){
-        alert('Файл больше 10 МБ');
-        return;
-      }
-      uploadedFile = f;
-      const reader = new FileReader();
-      reader.onload = e=>{
-        $('#preview-image').src = e.target.result;
-        show($('#preview-content'));
+    function handleFiles(fileList){
+      const files = Array.from(fileList || []);
+      files.forEach(f=>{
+        if(f.size > 10*1024*1024){
+          alert('Файл больше 10 МБ');
+          return;
+        }
+        if(f.type && !f.type.startsWith('image/')){
+          alert('Можно загружать только изображения');
+          return;
+        }
+        uploadedFiles.push(f);
+        const reader = new FileReader();
+        reader.onload = e=>{
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.className = 'max-h-32 rounded';
+          $('#preview-images').appendChild(img);
+          const img2 = document.createElement('img');
+          img2.src = e.target.result;
+          img2.className = 'max-h-56 rounded';
+          $('#final-origins').appendChild(img2);
+        };
+        reader.readAsDataURL(f);
+      });
+      if(uploadedFiles.length > 0){
         hide($('#upload-content'));
-        $('#final-origin').src = e.target.result;
-        show($('#next-to-params'));
-      };
-      reader.readAsDataURL(f);
+        show($('#preview-content'));
+      }
     }
 
-    $('#next-to-params').addEventListener('click', ()=> setStep(2));
-    $('#next-to-wishes').addEventListener('click', ()=> setStep(3));
+    $('#next-to-wishes').addEventListener('click', ()=> setStep(2));
 
-    // ---------- step 3 → 4 (call API) ----------
+    // ---------- step 2 → 3 ----------
     $('#start-generation').addEventListener('click', async ()=>{
-      if(!uploadedFile){ alert('Сначала загрузите фото.'); return; }
+      if(!uploadedFiles.length){ alert('Сначала загрузите фото.'); return; }
 
-      // формируем подсказку
       const roomType = $('#room-type').value || 'комната';
       const style = $('#style').value || 'современный стиль';
       const wishes = $('#additional-wishes').value || '';
@@ -263,71 +266,84 @@
       const width = $('#room-width').value;
       const height = $('#room-height').value;
       let dims = '';
-      if (length || width || height) {
-        if (length && width && height) {
-          dims = ` Размеры: ${length}×${width}×${height} м.`;
-        } else {
-          const parts = [];
-          if (length) parts.push(`длина ${length} м`);
-          if (width) parts.push(`ширина ${width} м`);
-          if (height) parts.push(`высота ${height} м`);
-          dims = ` Размеры: ${parts.join(', ')}.`;
-        }
+      if(length || width || height){
+        const parts = [];
+        if(length) parts.push(`длина ${length} м`);
+        if(width) parts.push(`ширина ${width} м`);
+        if(height) parts.push(`высота ${height} м`);
+        dims = ` Размеры: ${parts.join(', ')}.`;
       }
       lastPrompt = `Сделай редизайн: ${roomType}, стиль: ${style}. ${wishes}${dims}`.trim();
 
-      // UI прогресс
-      setStep(4);
-      updateProgress(10, 'Загружаем фото…');
+      setStep(3);
+      updateProgress(10,'Загружаем фото…');
 
       try{
         const fd = new FormData();
-        fd.append('image', uploadedFile, uploadedFile.name);
+        uploadedFiles.forEach(f=> fd.append('image', f, f.name));
         fd.append('prompt', lastPrompt);
 
-        updateProgress(25, 'Отправляем на сервер…');
-        const res = await fetch('/api/redesign', { method:'POST', body: fd });
-
+        updateProgress(25,'Отправляем на сервер…');
+        const res = await fetch('/api/redesign', {method:'POST', body:fd});
         if(!res.ok){
           const t = await res.text();
           throw new Error(`API ошибка ${res.status}: ${t}`);
         }
 
-        updateProgress(65, 'Генерация дизайна…');
+        updateProgress(65,'Генерация дизайна…');
         const data = await res.json();
-        let imgSrc = '';
-        if(data.image_base64){
-          imgSrc = `data:image/png;base64,${data.image_base64}`;
-        } else if(data.image_url){
-          imgSrc = data.image_url;
-        } else {
-          throw new Error('Некорректный ответ API (нет image_base64/image_url)');
-        }
+        const imgSrc = data.image_base64 ? `data:image/png;base64,${data.image_base64}` : data.image_url;
 
-        updateProgress(95, 'Готовим результат…');
-        const resultImg = $('#result-image');
-        resultImg.src = imgSrc;
-        resultImg.onload = ()=>{
-          hide($('#result-placeholder'));
-          show(resultImg);
-        };
-
-        updateProgress(100, 'Готово!');
-        setStep(5);
+        updateProgress(95,'Готовим результат…');
+        setStep(4);
+        addVariant(imgSrc);
+        updateProgress(100,'Готово!');
       }catch(err){
         console.error(err);
-        alert('Не удалось сгенерировать дизайн: ' + err.message);
-        setStep(3);
+        alert('Не удалось сгенерировать дизайн: '+err.message);
+        setStep(2);
       }
     });
 
-    function updateProgress(pct, text){
+    function updateProgress(pct,text){
       $('#progress-bar').style.width = pct + '%';
       $('#progress-text').textContent = text;
     }
 
-    // ---------- чат-заглушка ----------
-    function addMessage(who, text){
+    // ---------- variants ----------
+    function addVariant(src){
+      variants.push(src);
+      selectedVariant = variants.length-1;
+      renderVariants();
+    }
+
+    function renderVariants(){
+      const cont = $('#variants');
+      cont.innerHTML = '';
+      variants.forEach((src,i)=>{
+        const img = document.createElement('img');
+        img.src = src;
+        img.className = 'h-20 w-20 object-cover rounded cursor-pointer border-4 '+(i===selectedVariant?'border-purple-500':'border-transparent');
+        img.addEventListener('click',()=>{
+          selectedVariant = i;
+          $('#result-image').src = src;
+          renderVariants();
+        });
+        cont.appendChild(img);
+      });
+      const current = variants[selectedVariant];
+      if(current){
+        const resultImg = $('#result-image');
+        resultImg.src = current;
+        resultImg.onload = ()=>{
+          hide($('#result-placeholder'));
+          show(resultImg);
+        };
+      }
+    }
+
+    // ---------- чат и перегенерация ----------
+    function addMessage(who,text){
       const c = $('#chat-container');
       const wrap = document.createElement('div');
       wrap.className = 'mb-3';
@@ -338,20 +354,49 @@
       c.appendChild(wrap);
       c.scrollTop = c.scrollHeight;
     }
+
     $('#send-message').addEventListener('click', ()=>{
       const val = $('#chat-input').value.trim();
       if(!val) return;
+      lastFeedback = val;
       addMessage('user', val);
-      $('#chat-input').value = '';
-      setTimeout(()=> addMessage('ai','Принято! Учитываю в следующей версии.'), 500);
+      $('#chat-input').value='';
+      setTimeout(()=> addMessage('ai','Принято! Нажмите «Перегенерировать».') ,500);
     });
 
-    $('#regenerate-design').addEventListener('click', ()=>{
+    async function regenerateDesign(){
+      if(!uploadedFiles.length){ alert('Сначала загрузите фото.'); return; }
+      if(!lastFeedback){ alert('Напишите сообщение с правками.'); return; }
+      const btn = $('#regenerate-design');
+      btn.disabled = true;
       addMessage('ai','Перегенерирую с учётом правок…');
-    });
+      hide($('#result-image'));
+      show($('#result-placeholder'));
+      try{
+        const fd = new FormData();
+        uploadedFiles.forEach(f=> fd.append('image', f, f.name));
+        fd.append('prompt', `${lastPrompt}. ${lastFeedback}`.trim());
+        const res = await fetch('/api/redesign', {method:'POST', body:fd});
+        if(!res.ok){
+          const t = await res.text();
+          throw new Error(`API ошибка ${res.status}: ${t}`);
+        }
+        const data = await res.json();
+        const imgSrc = data.image_base64 ? `data:image/png;base64,${data.image_base64}` : data.image_url;
+        addVariant(imgSrc);
+      }catch(err){
+        console.error(err);
+        addMessage('ai','Ошибка: '+err.message);
+        $('#result-placeholder').textContent = 'Ошибка генерации';
+      }finally{
+        btn.disabled = false;
+      }
+    }
+
+    $('#regenerate-design').addEventListener('click', regenerateDesign);
 
     $('#approve-design').addEventListener('click', ()=>{
-      setStep(6);
+      setStep(5);
       window.scrollTo({top:0,behavior:'smooth'});
     });
 
