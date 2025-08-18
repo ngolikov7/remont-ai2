@@ -29,66 +29,63 @@
   <!-- Steps -->
   <div class="max-w-7xl mx-auto px-4 py-6">
     <div class="flex items-center space-x-4 mb-8">
-      <div id="step1Chip" class="step-active px-4 py-2 rounded-full text-sm font-medium">1 Загрузка фото</div>
+      <div id="step1Chip" class="step-active px-4 py-2 rounded-full text-sm font-medium">1 Фото и параметры</div>
       <div class="w-8 h-0.5 bg-gray-300"></div>
-      <div id="step2Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">2 Параметры</div>
-      <div class="w-8 h-0.5 bg-gray-300"></div
-      ><div id="step3Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">3 Пожелания</div>
+      <div id="step2Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">2 Пожелания</div>
       <div class="w-8 h-0.5 bg-gray-300"></div>
-      <div id="step4Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">4 Генерация</div>
+      <div id="step3Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">3 Генерация</div>
       <div class="w-8 h-0.5 bg-gray-300"></div>
-      <div id="step5Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">5 Правки</div>
+      <div id="step4Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">4 Правки</div>
       <div class="w-8 h-0.5 bg-gray-300"></div>
-      <div id="step6Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">6 План ремонта</div>
+      <div id="step5Chip" class="step-inactive px-4 py-2 rounded-full text-sm font-medium">5 План ремонта</div>
     </div>
 
-    <!-- Step 1: upload -->
-    <section id="upload-section" class="bg-white rounded-xl shadow-lg p-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Загрузите фотографию вашей комнаты</h2>
-      <div class="upload-area rounded-lg p-12 text-center cursor-pointer" id="upload-area">
-        <div id="upload-content">
-          <div class="text-6xl mb-4">📷</div>
-          <h3 class="text-xl font-semibold text-gray-700 mb-2">Перетащите фото сюда или нажмите для выбора</h3>
-          <p class="text-gray-500">Поддерживаются JPG/PNG/WEBP (до 10 МБ)</p>
-        </div>
-        <div id="preview-content" class="hidden">
-          <img id="preview-image" class="max-w-full max-h-64 mx-auto rounded-lg shadow-md mb-3" alt="Предпросмотр"/>
-          <p class="text-green-600 font-medium">✅ Фото загружено успешно</p>
-        </div>
-      </div>
-      <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" />
-      <button id="next-to-params" class="hidden mt-6 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:from-purple-600 hover:to-blue-600 transition">
-        Далее: Параметры комнаты →
-      </button>
-    </section>
-
-    <!-- Step 2: params -->
-    <section id="params-section" class="hidden bg-white rounded-xl shadow-lg p-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Параметры вашей комнаты</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Step 1: upload & params -->
+    <section id="upload-params-section" class="bg-white rounded-xl shadow-lg p-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Загрузите фото и задайте параметры</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Длина (м)</label>
-          <input id="room-length" type="number" class="w-full px-4 py-3 border rounded-lg" placeholder="4.5">
+          <div class="upload-area rounded-lg p-12 text-center cursor-pointer mb-6" id="upload-area">
+            <div id="upload-content">
+              <div class="text-6xl mb-4">📷</div>
+              <h3 class="text-xl font-semibold text-gray-700 mb-2">Перетащите фото сюда или нажмите для выбора</h3>
+              <p class="text-gray-500">Можно загружать любые изображения (до 10 МБ)</p>
+            </div>
+            <div id="preview-content" class="hidden">
+              <div id="preview-images" class="flex flex-wrap gap-4 justify-center mb-3"></div>
+              <p class="text-green-600 font-medium">✅ Фото загружено успешно</p>
+            </div>
+          </div>
+          <input id="fileInput" type="file" accept="image/*" multiple class="hidden" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Ширина (м)</label>
-          <input id="room-width" type="number" class="w-full px-4 py-3 border rounded-lg" placeholder="3.2">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Высота потолка (м)</label>
-          <input id="room-height" type="number" class="w-full px-4 py-3 border rounded-lg" placeholder="2.7">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Тип комнаты</label>
-          <select id="room-type" class="w-full px-4 py-3 border rounded-lg">
-            <option value="">Выберите</option>
-            <option value="Гостиная">Гостиная</option>
-            <option value="Спальня">Спальня</option>
-            <option value="Кухня">Кухня</option>
-            <option value="Ванная">Ванная</option>
-            <option value="Кабинет">Кабинет</option>
-            <option value="Детская">Детская</option>
-          </select>
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">Параметры комнаты</h2>
+          <div class="grid grid-cols-1 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Длина (м)</label>
+              <input id="room-length" type="number" class="w-full px-4 py-3 border rounded-lg" placeholder="4.5">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Ширина (м)</label>
+              <input id="room-width" type="number" class="w-full px-4 py-3 border rounded-lg" placeholder="3.2">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Высота потолка (м)</label>
+              <input id="room-height" type="number" class="w-full px-4 py-3 border rounded-lg" placeholder="2.7">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Тип комнаты</label>
+              <select id="room-type" class="w-full px-4 py-3 border rounded-lg">
+                <option value="">Выберите</option>
+                <option value="Гостиная">Гостиная</option>
+                <option value="Спальня">Спальня</option>
+                <option value="Кухня">Кухня</option>
+                <option value="Ванная">Ванная</option>
+                <option value="Кабинет">Кабинет</option>
+                <option value="Детская">Детская</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
       <button id="next-to-wishes" class="mt-6 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:from-purple-600 hover:to-blue-600 transition">
@@ -96,7 +93,7 @@
       </button>
     </section>
 
-    <!-- Step 3: wishes -->
+    <!-- Step 2: wishes -->
     <section id="wishes-section" class="hidden bg-white rounded-xl shadow-lg p-8">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Ваши пожелания</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -133,7 +130,7 @@
       </button>
     </section>
 
-    <!-- Step 4: generation -->
+    <!-- Step 3: generation -->
     <section id="generation-section" class="hidden bg-white rounded-xl shadow-lg p-8">
       <div class="text-center">
         <div class="ai-thinking text-6xl mb-4">🤖</div>
@@ -145,7 +142,7 @@
       </div>
     </section>
 
-    <!-- Step 5: review -->
+    <!-- Step 4: review -->
     <section id="review-section" class="hidden bg-white rounded-xl shadow-lg p-8">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Ваш новый дизайн готов!</h2>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -185,7 +182,7 @@
       </div>
     </section>
 
-    <!-- Step 6: plan -->
+    <!-- Step 5: plan -->
     <section id="plan-section" class="hidden bg-white rounded-xl shadow-lg p-8">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">План ремонта и список покупок</h2>
       <p class="text-gray-600">Здесь будет смета, этапы работ и список материалов — добавим после утверждения дизайна.</p>
@@ -198,17 +195,16 @@
     const show = el => el.classList.remove('hidden');
     const hide = el => el.classList.add('hidden');
 
-    const chips = ['step1','step2','step3','step4','step5','step6'].map(id => $('#'+id+'Chip'));
+    const chips = ['step1','step2','step3','step4','step5'].map(id => $('#'+id+'Chip'));
     function setStep(n){
-      const sections = ['upload','params','wishes','generation','review','plan'].map(id => $('#'+id+'-section'));
+      const sections = ['upload-params','wishes','generation','review','plan'].map(id => $('#'+id+'-section'));
       sections.forEach((el,i)=> i===n-1 ? show(el) : hide(el));
       chips.forEach((el,i)=> el.className = (i===n-1) ? 'step-active px-4 py-2 rounded-full text-sm font-medium' : 'step-inactive px-4 py-2 rounded-full text-sm font-medium');
       window.scrollTo({top:0,behavior:'smooth'});
     }
 
     // ---------- state ----------
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-    let uploadedFile = null;
+    let uploadedFiles = [];
     let lastPrompt = '';
     let lastFeedback = '';
 
@@ -221,40 +217,46 @@
     uploadArea.addEventListener('drop', e=>{
       e.preventDefault();
       uploadArea.classList.remove('bg-blue-50');
-      if(e.dataTransfer.files && e.dataTransfer.files[0]) {
-        handleFile(e.dataTransfer.files[0]);
-      }
+      if(e.dataTransfer.files) handleFiles(e.dataTransfer.files);
     });
-    fileInput.addEventListener('change', ()=> handleFile(fileInput.files?.[0]));
+    fileInput.addEventListener('change', ()=> handleFiles(fileInput.files));
 
-    function handleFile(f){
-      if(!f) return;
-      if(!allowedTypes.includes(f.type)){
-        alert('Поддерживаются только JPG, PNG или WEBP');
-        return;
-      }
-      if(f.size > 10*1024*1024){
-        alert('Файл больше 10 МБ');
-        return;
-      }
-      uploadedFile = f;
-      const reader = new FileReader();
-      reader.onload = e=>{
-        $('#preview-image').src = e.target.result;
-        show($('#preview-content'));
+    function handleFiles(fileList){
+      const files = Array.from(fileList || []);
+      files.forEach(f=>{
+        if(f.size > 10*1024*1024){
+          alert('Файл больше 10 МБ');
+          return;
+        }
+        if(f.type && !f.type.startsWith('image/')){
+          alert('Можно загружать только изображения');
+          return;
+        }
+        uploadedFiles.push(f);
+        const reader = new FileReader();
+        reader.onload = e=>{
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.className = 'max-h-32 rounded mx-auto';
+          $('#preview-images').appendChild(img);
+        };
+        reader.readAsDataURL(f);
+      });
+      if(uploadedFiles.length > 0){
         hide($('#upload-content'));
-        $('#final-origin').src = e.target.result;
-        show($('#next-to-params'));
-      };
-      reader.readAsDataURL(f);
+        show($('#preview-content'));
+        show($('#next-to-wishes'));
+        const r = new FileReader();
+        r.onload = e=> { $('#final-origin').src = e.target.result; };
+        r.readAsDataURL(uploadedFiles[0]);
+      }
     }
 
-    $('#next-to-params').addEventListener('click', ()=> setStep(2));
-    $('#next-to-wishes').addEventListener('click', ()=> setStep(3));
+    $('#next-to-wishes').addEventListener('click', ()=> setStep(2));
 
-    // ---------- step 3 → 4 (call API) ----------
+    // ---------- step 2 → 3 (call API) ----------
     $('#start-generation').addEventListener('click', async ()=>{
-      if(!uploadedFile){ alert('Сначала загрузите фото.'); return; }
+      if(!uploadedFiles.length){ alert('Сначала загрузите фото.'); return; }
 
       const roomType = $('#room-type').value || 'комната';
       const style = $('#style').value || 'современный стиль';
@@ -276,12 +278,12 @@
       }
       lastPrompt = `Сделай редизайн: ${roomType}, стиль: ${style}. ${wishes}${dims}`.trim();
 
-      setStep(4);
+      setStep(3);
       updateProgress(10, 'Загружаем фото…');
 
       try{
         const fd = new FormData();
-        fd.append('image', uploadedFile, uploadedFile.name);
+        uploadedFiles.forEach(f=> fd.append('image', f, f.name));
         fd.append('prompt', lastPrompt);
 
         updateProgress(25, 'Отправляем на сервер…');
@@ -294,14 +296,9 @@
 
         updateProgress(65, 'Генерация дизайна…');
         const data = await res.json();
-        let imgSrc = '';
-        if(data.image_base64){
-          imgSrc = `data:image/png;base64,${data.image_base64}`;
-        } else if(data.image_url){
-          imgSrc = data.image_url;
-        } else {
-          throw new Error('Некорректный ответ API (нет image_base64/image_url)');
-        }
+        const imgSrc = data.image_base64
+          ? `data:image/png;base64,${data.image_base64}`
+          : data.image_url;
 
         updateProgress(95, 'Готовим результат…');
         const resultImg = $('#result-image');
@@ -312,11 +309,11 @@
         };
 
         updateProgress(100, 'Готово!');
-        setStep(5);
+        setStep(4);
       }catch(err){
         console.error(err);
         alert('Не удалось сгенерировать дизайн: ' + err.message);
-        setStep(3);
+        setStep(2);
       }
     });
 
@@ -349,7 +346,7 @@
     });
 
     async function regenerateDesign(){
-      if(!uploadedFile){
+      if(!uploadedFiles.length){
         alert('Сначала загрузите фото.');
         return;
       }
@@ -364,7 +361,7 @@
       show($('#result-placeholder'));
       try{
         const fd = new FormData();
-        fd.append('image', uploadedFile, uploadedFile.name);
+        uploadedFiles.forEach(f=> fd.append('image', f, f.name));
         fd.append('prompt', `${lastPrompt}. ${lastFeedback}`.trim());
 
         const res = await fetch('/api/redesign', { method:'POST', body: fd });
@@ -397,7 +394,7 @@
     $('#regenerate-design').addEventListener('click', regenerateDesign);
 
     $('#approve-design').addEventListener('click', ()=>{
-      setStep(6);
+      setStep(5);
       window.scrollTo({top:0,behavior:'smooth'});
     });
 
